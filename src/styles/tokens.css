@@ -1,0 +1,128 @@
+/* ==========================================================================
+   Design Tokens — Orange × Navy
+   Edit colors here to re-theme the whole site.
+   ========================================================================== */
+
+:root {
+  /* Typography */
+  --font-display: 'Bricolage Grotesque', 'Inter', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
+
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-base: 1rem;
+  --fs-md: 1.125rem;
+  --fs-lg: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --fs-xl: clamp(1.6rem, 1.2rem + 1.6vw, 2.4rem);
+  --fs-2xl: clamp(2.2rem, 1.4rem + 3.4vw, 4.2rem);
+  --fs-hero: clamp(2.8rem, 1.2rem + 6.4vw, 7rem);
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+  --section-pad: clamp(5rem, 3rem + 8vw, 10rem);
+  --container: 1240px;
+  --gutter: clamp(1.25rem, 0.5rem + 3vw, 3rem);
+
+  /* Radii */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-xl: 32px;
+  --radius-pill: 999px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 180ms;
+  --dur-med: 360ms;
+  --dur-slow: 700ms;
+
+  /* Brand (theme independent) */
+  --orange-400: #ff9a3c;
+  --orange-500: #ff7a1a;
+  --orange-600: #e8630a;
+  --amber-400: #ffb547;
+  --navy-950: #050a18;
+  --navy-900: #070d1f;
+  --navy-850: #0b1430;
+  --navy-800: #0f1a36;
+  --navy-700: #16244a;
+  --navy-600: #1e3a8a;
+  --navy-500: #3b5bdb;
+  --navy-300: #8fa8ff;
+
+  --gradient-brand: linear-gradient(120deg, var(--orange-500) 0%, var(--amber-400) 100%);
+  --gradient-navy: linear-gradient(135deg, var(--navy-600) 0%, var(--navy-500) 100%);
+}
+
+/* ---------- Dark theme (default) ---------- */
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: var(--navy-900);
+  --bg-elevated: var(--navy-850);
+  --surface: rgba(20, 34, 72, 0.55);
+  --surface-solid: var(--navy-800);
+  --surface-hover: rgba(30, 50, 105, 0.6);
+  --border: rgba(143, 168, 255, 0.12);
+  --border-strong: rgba(143, 168, 255, 0.24);
+
+  --text: #e8ecf7;
+  --text-muted: #8a96b8;
+  --text-faint: #56618a;
+
+  --accent: var(--orange-500);
+  --accent-soft: rgba(255, 122, 26, 0.14);
+  --accent-glow: rgba(255, 122, 26, 0.45);
+  --secondary: var(--navy-300);
+  --secondary-soft: rgba(91, 123, 255, 0.16);
+
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 20px 50px -20px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 0 1px rgba(255, 122, 26, 0.3), 0 10px 40px -10px rgba(255, 122, 26, 0.5);
+  --glass: rgba(7, 13, 31, 0.62);
+  --noise-opacity: 0.05;
+
+  --blob-1: rgba(255, 122, 26, 0.22);
+  --blob-2: rgba(59, 91, 219, 0.28);
+  --blob-3: rgba(255, 181, 71, 0.12);
+}
+
+/* ---------- Light theme ---------- */
+[data-theme='light'] {
+  color-scheme: light;
+  --bg: #f8f5ef;
+  --bg-elevated: #fffdf9;
+  --surface: rgba(255, 255, 255, 0.72);
+  --surface-solid: #ffffff;
+  --surface-hover: rgba(255, 255, 255, 0.95);
+  --border: rgba(14, 26, 61, 0.1);
+  --border-strong: rgba(14, 26, 61, 0.2);
+
+  --text: #0e1a3d;
+  --text-muted: #55607e;
+  --text-faint: #9099b3;
+
+  --accent: var(--orange-600);
+  --accent-soft: rgba(232, 99, 10, 0.1);
+  --accent-glow: rgba(232, 99, 10, 0.3);
+  --secondary: #1e3a8a;
+  --secondary-soft: rgba(30, 58, 138, 0.08);
+
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 20px 50px -24px rgba(14, 26, 61, 0.25);
+  --shadow-glow: 0 0 0 1px rgba(232, 99, 10, 0.25), 0 10px 40px -12px rgba(232, 99, 10, 0.35);
+  --glass: rgba(248, 245, 239, 0.7);
+  --noise-opacity: 0.035;
+
+  --blob-1: rgba(255, 122, 26, 0.18);
+  --blob-2: rgba(30, 58, 138, 0.14);
+  --blob-3: rgba(255, 181, 71, 0.18);
+}
