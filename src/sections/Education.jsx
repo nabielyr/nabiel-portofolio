@@ -66,26 +66,23 @@ export default function Education() {
               <span className={styles.period}>{pick(edu.period)}</span>
             </div>
 
-            {edu.labAffiliation && (
-              <div className={styles.labAffiliation}>
-                <div className={styles.labLogoBox}>
-                  <img
-                    src={edu.labAffiliation.logo}
-                    alt={edu.labAffiliation.name}
-                    className={styles.labAffiliationLogo}
-                    width="44"
-                    height="44"
-                    loading="lazy"
-                  />
-                </div>
-                <div className={styles.labAffiliationContent}>
-                  <div className={styles.labAffiliationHeader}>
-                    <span className={styles.labBadge}>{pick(edu.labAffiliation.role)}</span>
-                    <span className={styles.labDot} />
-                    <span className={styles.labName}>{edu.labAffiliation.name}</span>
+            {edu.affiliations && edu.affiliations.length > 0 && (
+              <div className={styles.affiliationsGrid}>
+                {edu.affiliations.map((aff) => (
+                  <div key={aff.id} className={styles.affiliationCard}>
+                    <div className={styles.affiliationLogoBox}>
+                      <img
+                        src={aff.logo}
+                        alt={aff.name}
+                        className={styles.affiliationLogo}
+                        width="38"
+                        height="38"
+                        loading="lazy"
+                      />
+                    </div>
+                    <span className={styles.affiliationName}>{aff.name}</span>
                   </div>
-                  <p className={styles.labDetail}>{pick(edu.labAffiliation.detail)}</p>
-                </div>
+                ))}
               </div>
             )}
 
