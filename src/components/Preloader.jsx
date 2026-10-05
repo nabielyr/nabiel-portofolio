@@ -35,9 +35,9 @@ export default function Preloader({ onDone }) {
   return (
     <motion.div
       className={styles.preloader}
-      initial={{ clipPath: 'inset(0% 0% 0% 0%)' }}
-      exit={{ clipPath: 'inset(0% 0% 100% 0%)' }}
-      transition={{ duration: 0.9, ease: [0.76, 0, 0.24, 1] }}
+      initial={{ y: '0%' }}
+      exit={{ y: '-100%' }}
+      transition={{ duration: 0.85, ease: [0.76, 0, 0.24, 1] }}
       role="status"
       aria-live="polite"
     >

@@ -10,6 +10,10 @@ import RotatingText from '../components/RotatingText'
 import styles from './Hero.module.css'
 
 const NeuralCanvas = lazy(() => import('../components/NeuralCanvas'))
+// Eagerly prefetch 3D canvas so shaders compile during preloader instead of blocking hero entrance
+if (typeof window !== 'undefined') {
+  import('../components/NeuralCanvas').catch(() => {})
+}
 
 const ease = [0.22, 1, 0.36, 1]
 
@@ -72,7 +76,7 @@ export default function Hero({ ready }) {
   return (
     <section id="home" ref={heroRef} className={styles.hero} onPointerMove={onPointerMove}>
       <div className={styles.canvas}>
-        {ready && eventSource && !reduceMotion && (
+        {eventSource && !reduceMotion && (
           <Suspense fallback={null}>
             <NeuralCanvas theme={theme} compact={compact} active={inView} eventSource={eventSource} />
           </Suspense>

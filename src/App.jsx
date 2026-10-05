@@ -19,6 +19,7 @@ import Contact from './sections/Contact'
 
 function Portfolio() {
   const [loading, setLoading] = useState(true)
+  const [heroReady, setHeroReady] = useState(false)
   const { scrollYProgress } = useScroll()
   const scaleX = useSpring(scrollYProgress, { stiffness: 200, damping: 30, restDelta: 0.001 })
 
@@ -27,10 +28,16 @@ function Portfolio() {
     return () => destroySmoothScroll()
   }, [])
 
+  const handlePreloaderDone = () => {
+    setLoading(false)
+    // Stagger hero text entrance slightly with curtain lift for maximum smoothness
+    setTimeout(() => setHeroReady(true), 160)
+  }
+
   return (
     <>
-      <AnimatePresence>
-        {loading && <Preloader onDone={() => setLoading(false)} />}
+      <AnimatePresence onExitComplete={() => setHeroReady(true)}>
+        {loading && <Preloader onDone={handlePreloaderDone} />}
       </AnimatePresence>
 
       <Cursor />
@@ -50,7 +57,7 @@ function Portfolio() {
       <Navbar />
 
       <main id="main-content">
-        <Hero ready={!loading} />
+        <Hero ready={heroReady} />
         <About />
         <Experience />
         <Education />

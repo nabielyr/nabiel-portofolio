@@ -4,6 +4,7 @@
   z-index: 9000;
   background: var(--navy-950);
   color: #e8ecf7;
+  will-change: transform;
 }
 
 [data-theme='light'] .preloader {
