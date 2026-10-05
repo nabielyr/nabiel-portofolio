@@ -121,8 +121,9 @@ export const projects = [
 /** Filter tabs. `id: 'all'` must stay first. */
 export const projectCategories = [
   { id: 'all', label: { en: 'All', id: 'Semua' } },
+  { id: 'fun', label: { en: 'Fun Projects', id: 'Fun Projects' } },
   { id: 'ai-ml', label: { en: 'AI / ML', id: 'AI / ML' } },
   { id: 'data-science', label: { en: 'Data Science', id: 'Data Science' } },
   { id: 'web-dev', label: { en: 'Web Development', id: 'Web Development' } },
-  { id: 'fun', label: { en: 'Fun Projects', id: 'Fun Projects' } },
 ]
+

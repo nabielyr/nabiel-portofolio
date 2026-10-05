@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { animate, motion, useInView, useScroll, useTransform } from 'framer-motion'
+import { FiAward } from 'react-icons/fi'
 import { useLanguage } from '../context/contexts'
 import SectionHeading from '../components/SectionHeading'
 import Reveal from '../components/Reveal'
@@ -132,6 +133,15 @@ export default function About() {
               <div>
                 <span className={styles.currentLabel}>{t('about.currently')}</span>
                 <p className={styles.currentRole}>{t('about.currentRole')}</p>
+              </div>
+            </Reveal>
+            <Reveal delay={0.25} className={styles.honor}>
+              <span className={styles.honorIcon}>
+                <FiAward />
+              </span>
+              <div>
+                <span className={styles.honorLabel}>{t('about.honorTitle')}</span>
+                <p className={styles.honorText}>{t('about.honor')}</p>
               </div>
             </Reveal>
           </div>

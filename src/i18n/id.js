@@ -39,10 +39,12 @@ const id = {
     stats: [
       { value: 49, suffix: '+', label: 'Mahasiswa dibimbing' },
       { value: 4, suffix: '', label: 'Peran & posisi' },
-      { value: 13, suffix: '+', label: 'Tools & teknologi' },
+      { value: 20, suffix: '+', label: 'Tools & teknologi' },
     ],
     currently: 'Saat ini',
     currentRole: 'Asisten Praktikum Kelas Internasional @ FILKOM UB',
+    honorTitle: 'Prestasi & Penghargaan',
+    honor: 'Top 1 Score · Olimpiade Bahasa Inggris Nasional (OBBIE-TN 2023)',
   },
   experience: {
     eyebrow: 'experience.log',

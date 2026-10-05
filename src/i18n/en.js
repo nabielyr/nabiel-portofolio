@@ -39,10 +39,12 @@ const en = {
     stats: [
       { value: 49, suffix: '+', label: 'Students mentored' },
       { value: 4, suffix: '', label: 'Roles & positions' },
-      { value: 13, suffix: '+', label: 'Tools & technologies' },
+      { value: 20, suffix: '+', label: 'Tools & technologies' },
     ],
     currently: 'Currently',
     currentRole: 'Teaching Assistant, International Class @ FILKOM UB',
+    honorTitle: 'Honors & Achievement',
+    honor: 'Top 1 Score · National English Olympiad (OBBIE-TN 2023)',
   },
   experience: {
     eyebrow: 'experience.log',

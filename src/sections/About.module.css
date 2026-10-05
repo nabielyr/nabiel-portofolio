@@ -203,6 +203,46 @@
   }
 }
 
+/* ---------- Honor / Achievement ---------- */
+.honor {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: color-mix(in srgb, var(--surface) 90%, var(--accent-soft));
+  transition: border-color var(--dur-fast), transform var(--dur-fast);
+}
+
+.honor:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.honorIcon {
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+  font-size: 1.15rem;
+  color: var(--amber-400);
+}
+
+.honorLabel {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+.honorText {
+  font-weight: 500;
+  font-size: var(--fs-sm);
+  color: var(--text);
+  margin-top: 0.15rem;
+}
+
 @media (max-width: 960px) {
   .grid {
     grid-template-columns: 1fr;
