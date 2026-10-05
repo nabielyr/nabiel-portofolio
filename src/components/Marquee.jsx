@@ -8,7 +8,11 @@ export default function Marquee({ items, reverse = false }) {
   const smooth = useSpring(velocity, { damping: 50, stiffness: 300 })
   const skew = useTransform(smooth, [-2000, 0, 2000], [8, 0, -8], { clamp: true })
 
-  const row = items.map((item, i) => (
+  // If the items array length is odd, double it so the alternating solid/outline pattern
+  // never clashes at the loop boundary (e.g. BPMN solid followed by Python solid).
+  const cycleItems = items.length % 2 !== 0 ? [...items, ...items] : items
+
+  const row = cycleItems.map((item, i) => (
     <span key={`${item}-${i}`} className={styles.item}>
       <span className={i % 2 ? styles.outline : styles.solid}>{item}</span>
       <span className={styles.star} aria-hidden="true">
