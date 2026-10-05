@@ -31,15 +31,105 @@
 }
 
 .emblem {
-  width: 64px;
-  height: 64px;
+  width: 68px;
+  height: 68px;
   display: grid;
   place-items: center;
   border-radius: 18px;
-  background: var(--gradient-navy);
-  color: #fff;
-  font-size: 1.6rem;
-  box-shadow: 0 10px 30px -10px rgba(30, 58, 138, 0.8);
+  background: color-mix(in srgb, var(--surface) 85%, rgba(255, 122, 26, 0.08));
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.4);
+  padding: 8px;
+  overflow: hidden;
+  transition: transform var(--dur-fast), border-color var(--dur-fast);
+}
+
+.emblem:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+
+.emblemImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.25));
+}
+
+.labAffiliation {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  padding: 0.9rem 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, #20BEFF 30%, var(--border));
+  background: color-mix(in srgb, var(--surface) 85%, rgba(32, 190, 255, 0.06));
+  backdrop-filter: blur(8px);
+  transition: border-color var(--dur-fast), transform var(--dur-fast);
+}
+
+.labAffiliation:hover {
+  border-color: #20BEFF;
+  transform: translateY(-2px);
+}
+
+.labLogoBox {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 4px;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.labAffiliationLogo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.labAffiliationContent {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.labAffiliationHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.labBadge {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: #20BEFF;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.labDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--text-faint);
+}
+
+.labName {
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+
+.labDetail {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  line-height: 1.5;
 }
 
 .titles {

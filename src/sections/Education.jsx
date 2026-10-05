@@ -43,7 +43,18 @@ export default function Education() {
             <div className={styles.glow} aria-hidden="true" />
             <div className={styles.head}>
               <div className={styles.emblem}>
-                <FiBookOpen />
+                {edu.logo ? (
+                  <img
+                    src={edu.logo}
+                    alt={edu.school}
+                    className={styles.emblemImg}
+                    width="56"
+                    height="56"
+                    loading="lazy"
+                  />
+                ) : (
+                  <FiBookOpen />
+                )}
               </div>
               <div className={styles.titles}>
                 <h3 className={styles.school}>{edu.school}</h3>
@@ -54,6 +65,29 @@ export default function Education() {
               </div>
               <span className={styles.period}>{pick(edu.period)}</span>
             </div>
+
+            {edu.labAffiliation && (
+              <div className={styles.labAffiliation}>
+                <div className={styles.labLogoBox}>
+                  <img
+                    src={edu.labAffiliation.logo}
+                    alt={edu.labAffiliation.name}
+                    className={styles.labAffiliationLogo}
+                    width="44"
+                    height="44"
+                    loading="lazy"
+                  />
+                </div>
+                <div className={styles.labAffiliationContent}>
+                  <div className={styles.labAffiliationHeader}>
+                    <span className={styles.labBadge}>{pick(edu.labAffiliation.role)}</span>
+                    <span className={styles.labDot} />
+                    <span className={styles.labName}>{edu.labAffiliation.name}</span>
+                  </div>
+                  <p className={styles.labDetail}>{pick(edu.labAffiliation.detail)}</p>
+                </div>
+              </div>
+            )}
 
             <p className={styles.desc}>{pick(edu.description)}</p>
 

@@ -74,7 +74,24 @@ export default function Experience() {
                   }}
                 >
                   <div className={styles.cardHead}>
-                    <h3 className={styles.role}>{pick(item.role)}</h3>
+                    <div className={styles.roleBlock}>
+                      {item.logo && (
+                        <div className={styles.orgLogoBox}>
+                          <img
+                            src={item.logo}
+                            alt={item.org}
+                            className={styles.orgLogoImg}
+                            width="36"
+                            height="36"
+                            loading="lazy"
+                          />
+                        </div>
+                      )}
+                      <div>
+                        <h3 className={styles.role}>{pick(item.role)}</h3>
+                        <p className={styles.org}>{item.org}</p>
+                      </div>
+                    </div>
                     {item.current && (
                       <span className={styles.current}>
                         <span className={styles.currentDot} />
@@ -82,7 +99,6 @@ export default function Experience() {
                       </span>
                     )}
                   </div>
-                  <p className={styles.org}>{item.org}</p>
                   <p className={styles.desc}>{pick(item.description)}</p>
                   <ul className={styles.tags}>
                     {item.tags.map((tag) => (

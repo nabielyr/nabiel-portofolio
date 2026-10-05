@@ -128,12 +128,27 @@ export default function About() {
             <Reveal>
               <CodeCard />
             </Reveal>
-            <Reveal delay={0.15} className={styles.current}>
-              <span className={styles.currentDot} />
-              <div>
-                <span className={styles.currentLabel}>{t('about.currently')}</span>
-                <p className={styles.currentRole}>{t('about.currentRole')}</p>
+            <Reveal delay={0.15} className={styles.labResident}>
+              <div className={styles.labHead}>
+                <div className={styles.labLogoWrap}>
+                  <img
+                    src="/images/logo-is-lab.webp"
+                    alt="Intelligent System Laboratory"
+                    className={styles.labLogo}
+                    width="44"
+                    height="44"
+                    loading="lazy"
+                  />
+                </div>
+                <div className={styles.labMeta}>
+                  <div className={styles.labBadgeRow}>
+                    <span className={styles.currentDot} />
+                    <span className={styles.currentLabel}>{t('about.residentBadge')}</span>
+                  </div>
+                  <h4 className={styles.labTitle}>{t('about.labTitle')}</h4>
+                </div>
               </div>
+              <p className={styles.labDesc}>{t('about.labDesc')}</p>
             </Reveal>
             <Reveal delay={0.25} className={styles.honor}>
               <span className={styles.honorIcon}>
