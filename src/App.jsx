@@ -52,8 +52,8 @@ const Sections = memo(function Sections() {
   return (
     <>
       <About />
-      <Experience />
       <Education />
+      <Experience />
       <Skills />
       <Projects />
       <Contact />

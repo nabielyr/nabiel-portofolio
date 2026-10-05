@@ -7,7 +7,7 @@ import { scrollToTarget, startScroll, stopScroll } from '../lib/smoothScroll'
 import Logo from './Logo'
 import styles from './Navbar.module.css'
 
-const SECTIONS = ['about', 'experience', 'education', 'skills', 'projects', 'contact']
+const SECTIONS = ['about', 'education', 'experience', 'skills', 'projects', 'contact']
 
 function useActiveSection() {
   const [active, setActive] = useState('')

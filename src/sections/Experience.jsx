@@ -19,7 +19,7 @@ export default function Experience() {
     <section id="experience" className="section">
       <div className="container">
         <SectionHeading
-          index={2}
+          index={3}
           eyebrow={t('experience.eyebrow')}
           title={t('experience.title')}
           accent={t('experience.titleAccent')}

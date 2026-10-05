@@ -31,7 +31,7 @@ export default function Education() {
     <section id="education" className="section">
       <div className="container">
         <SectionHeading
-          index={3}
+          index={2}
           eyebrow={t('education.eyebrow')}
           title={t('education.title')}
           accent={t('education.titleAccent')}
