@@ -6,7 +6,7 @@ const INTERACTIVE = 'a, button, [role="button"], input, textarea, select, label,
 
 // Reticle follow speed (1/s). Frame-rate independent: same feel at 60Hz and 144Hz.
 const FOLLOW = 30
-const SETTLE = 0.1 // px — stop the loop once the reticle has caught up
+const SETTLE = 0.1 // px - stop the loop once the reticle has caught up
 
 /**
  * AI Target Reticle / Precision Node Cursor

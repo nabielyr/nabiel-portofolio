@@ -1,4 +1,6 @@
-# Muhammad Nabiel Yandra — Portfolio Website
+# Muhammad Nabiel Yandra - Portfolio Website
+
+> 🌐 **Live Website:** [https://nabiel-portofolio-five.vercel.app/](https://nabiel-portofolio-five.vercel.app/)
 
 Personal portfolio website built with **React + Vite**, **Three.js** (interactive 3D neural network), **Framer Motion**, and **Lenis** smooth scroll.
 
@@ -74,15 +76,17 @@ The "Resume" download button in the navigation bar will automatically appear!
 git add .
 git commit -m "feat: complete interactive portfolio website"
 git branch -M main
-gh repo create nabiel-portfolio --public --source=. --remote=origin --push
+gh repo create nabiel-portofolio --public --source=. --remote=origin --push
 ```
 
 ### Step 2: Connect to Vercel
 
 1. Go to [vercel.com](https://vercel.com) and log in with your GitHub account.
 2. Click **Add New...** > **Project**.
-3. Import the `nabiel-portfolio` repository.
+3. Import the `nabiel-portofolio` repository.
 4. Framework Preset will be automatically detected as **Vite**.
 5. Click **Deploy**.
+
+Live production deployment: [https://nabiel-portofolio-five.vercel.app/](https://nabiel-portofolio-five.vercel.app/)
 
 Every future `git push` to your `main` branch will automatically deploy!

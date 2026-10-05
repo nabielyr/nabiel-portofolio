@@ -5,7 +5,7 @@ export const education = [
     logo: '/images/logo-ub.webp',
     faculty: { en: 'Faculty of Computer Science (FILKOM)', id: 'Fakultas Ilmu Komputer (FILKOM)' },
     degree: { en: 'Bachelor of Information Systems', id: 'Sarjana Sistem Informasi' },
-    period: { en: '2024 — Present', id: '2024 — Sekarang' },
+    period: { en: '2024 - Present', id: '2024 - Sekarang' },
     affiliations: [
       {
         id: 'is-lab',

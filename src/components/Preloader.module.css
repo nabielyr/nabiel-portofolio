@@ -23,7 +23,7 @@
     transform 0.5s cubic-bezier(0.76, 0, 0.24, 1);
 }
 
-/* Curtain lift — transform/opacity only, so it runs on the compositor */
+/* Curtain lift - transform/opacity only, so it runs on the compositor */
 .exit {
   transform: translate3d(0, -100%, 0);
 }

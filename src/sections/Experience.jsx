@@ -61,7 +61,7 @@ export default function Experience() {
                   variants={{ hidden: { opacity: 0, x: -20 }, show: { opacity: 1, x: 0, transition: { duration: 0.7 } } }}
                 >
                   <span className={styles.date}>
-                    {pick(item.start)} — {pick(item.end)}
+                    {pick(item.start)} - {pick(item.end)}
                   </span>
                   <span className={styles.step}>task_{String(i + 1).padStart(2, '0')}</span>
                 </motion.div>

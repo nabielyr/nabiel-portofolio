@@ -42,7 +42,7 @@
   font-size: var(--fs-md);
 }
 
-/* Primary — orange gradient with a sweeping shine */
+/* Primary - orange gradient with a sweeping shine */
 .primary {
   color: #fff;
   background: var(--gradient-brand);
@@ -64,7 +64,7 @@
   box-shadow: 0 16px 40px -10px var(--accent-glow);
 }
 
-/* Ghost — glass outline with fill-up hover */
+/* Ghost - glass outline with fill-up hover */
 .ghost {
   color: var(--text);
   border: 1px solid var(--border-strong);
@@ -90,7 +90,7 @@
   transform: translateY(0);
 }
 
-/* Subtle — text-like pill */
+/* Subtle - text-like pill */
 .subtle {
   color: var(--text-muted);
   border: 1px solid var(--border);

@@ -20,7 +20,7 @@ import Contact from './sections/Contact'
 /*
  * Everything except the Preloader and Hero is memoized, so the intro state
  * changes (curtain lift, hero ready, preloader unmount) re-render only those
- * two instead of the whole page — a full re-render there (incl. the Projects
+ * two instead of the whole page - a full re-render there (incl. the Projects
  * layout measurements) is what used to freeze the curtain.
  */
 const Chrome = memo(function Chrome() {

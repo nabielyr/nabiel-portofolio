@@ -72,7 +72,7 @@ export default function Hero({ ready }) {
     return () => io.disconnect()
   }, [])
 
-  // No canvas to wait for — let the Preloader start right away
+  // No canvas to wait for - let the Preloader start right away
   useEffect(() => {
     if (reduceMotion) markSceneReady()
   }, [reduceMotion])

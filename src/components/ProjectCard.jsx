@@ -36,7 +36,7 @@ const ProjectCard = forwardRef(function ProjectCard({ project }, ref) {
           href={primaryLink}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label={`${project.title} — ${t('projects.view')}`}
+          aria-label={`${project.title} - ${t('projects.view')}`}
         />
       )}
 

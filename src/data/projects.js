@@ -1,6 +1,6 @@
 /**
  * ============================================================
- *  PROJECTS — edit this file to add / update your projects.
+ *  PROJECTS - edit this file to add / update your projects.
  * ============================================================
  *
  *  Fields:
