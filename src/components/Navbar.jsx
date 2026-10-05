@@ -37,10 +37,20 @@ export default function Navbar() {
   const [hidden, setHidden] = useState(false)
   const [open, setOpen] = useState(false)
   const { scrollY } = useScroll()
+  const pageHeight = useRef(0)
 
   useMotionValueEvent(scrollY, 'change', (y) => {
     const prev = scrollY.getPrevious() ?? 0
     setScrolled(y > 40)
+
+    // A scroll jump that comes with a page-height change is the browser keeping
+    // the view anchored after a reflow (e.g. switching language), not the user
+    // scrolling down — don't hide the nav for it.
+    const height = document.documentElement.scrollHeight
+    const reflowed = height !== pageHeight.current
+    pageHeight.current = height
+    if (reflowed) return
+
     setHidden(y > 500 && y > prev + 4 && !open)
     if (y < prev - 4) setHidden(false)
   })

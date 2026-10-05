@@ -1,7 +1,7 @@
 export const education = [
   {
     id: 'ub',
-    school: 'Universitas Brawijaya',
+    school: 'Brawijaya University',
     logo: '/images/logo-ub.webp',
     faculty: { en: 'Faculty of Computer Science (FILKOM)', id: 'Fakultas Ilmu Komputer (FILKOM)' },
     degree: { en: 'Bachelor of Information Systems', id: 'Sarjana Sistem Informasi' },
