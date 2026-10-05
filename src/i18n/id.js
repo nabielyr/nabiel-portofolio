@@ -20,7 +20,7 @@ const id = {
     ready: 'siap',
   },
   hero: {
-    location: 'Universitas Brawijaya · Malang, ID',
+    location: 'Brawijaya University · Malang, ID',
     greeting: 'Halo, saya',
     rolePrefix: 'Seorang',
     roles: ['Mahasiswa Sistem Informasi', 'Calon AI/ML Engineer', 'Lab Resident @ Intelligent System Lab', 'Penggiat Data Science', 'Asisten Praktikum'],

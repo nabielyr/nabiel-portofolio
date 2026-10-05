@@ -74,11 +74,28 @@ h4 {
   border-radius: 6px;
 }
 
-/* Hide native cursor when custom cursor is active (fine pointers only) */
+/* Custom cursor (fine pointers only): the precision dot is a native cursor
+   image, drawn by the OS with zero latency; Cursor.jsx only animates the
+   trailing reticle. Same look as the old DOM dot (accent core + soft glow). */
+:root {
+  --cursor-dot: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3CradialGradient id='g'%3E%3Cstop offset='.2' stop-color='%23ff7a1a' stop-opacity='.42'/%3E%3Cstop offset='.6' stop-color='%23ff7a1a' stop-opacity='.13'/%3E%3Cstop offset='1' stop-color='%23ff7a1a' stop-opacity='0'/%3E%3C/radialGradient%3E%3Ccircle cx='16' cy='16' r='12.5' fill='url(%23g)'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%23ff7a1a'/%3E%3C/svg%3E") 16 16, auto;
+  --cursor-dot-hover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3CradialGradient id='g'%3E%3Cstop offset='.25' stop-color='%23ff7a1a' stop-opacity='.5'/%3E%3Cstop offset='.62' stop-color='%23ff7a1a' stop-opacity='.16'/%3E%3Cstop offset='1' stop-color='%23ff7a1a' stop-opacity='0'/%3E%3C/radialGradient%3E%3Ccircle cx='16' cy='16' r='16' fill='url(%23g)'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23fff'/%3E%3C/svg%3E") 16 16, pointer;
+}
+
+[data-theme='light'] {
+  --cursor-dot: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3CradialGradient id='g'%3E%3Cstop offset='.2' stop-color='%23ff7a1a' stop-opacity='.42'/%3E%3Cstop offset='.6' stop-color='%23ff7a1a' stop-opacity='.13'/%3E%3Cstop offset='1' stop-color='%23ff7a1a' stop-opacity='0'/%3E%3C/radialGradient%3E%3Ccircle cx='16' cy='16' r='12.5' fill='url(%23g)'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%23e8630a'/%3E%3C/svg%3E") 16 16, auto;
+  --cursor-dot-hover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3CradialGradient id='g'%3E%3Cstop offset='.25' stop-color='%23e8630a' stop-opacity='.5'/%3E%3Cstop offset='.62' stop-color='%23e8630a' stop-opacity='.16'/%3E%3Cstop offset='1' stop-color='%23e8630a' stop-opacity='0'/%3E%3C/radialGradient%3E%3Ccircle cx='16' cy='16' r='16' fill='url(%23g)'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23fff'/%3E%3C/svg%3E") 16 16, pointer;
+}
+
 @media (hover: hover) and (pointer: fine) {
   html.has-custom-cursor,
   html.has-custom-cursor * {
-    cursor: none !important;
+    cursor: var(--cursor-dot) !important;
+  }
+
+  html.has-custom-cursor :is(a, button, [role='button'], input, textarea, select, label, [data-cursor], [data-cursor-label], .clickable),
+  html.has-custom-cursor :is(a, button, [role='button'], input, textarea, select, label, [data-cursor], [data-cursor-label], .clickable) * {
+    cursor: var(--cursor-dot-hover) !important;
   }
 }
 
@@ -150,37 +167,45 @@ h4 {
   overflow: hidden;
 }
 
+/*
+ * Soft glows are painted as radial gradients instead of `filter: blur(90px)`:
+ * same look, but the drifting layers are pure compositing with no per-frame
+ * blur pass (which also made every backdrop-filter card re-blur each frame).
+ * Each box is grown by 2×180px (≈2σ of the old blur) to keep the same falloff;
+ * --solid is where the old blurred edge started to fade.
+ */
 .ambient__blob {
   position: absolute;
-  border-radius: 50%;
-  filter: blur(90px);
+  width: calc(var(--size) + 360px);
+  height: calc(var(--size) + 360px);
+  background: radial-gradient(closest-side, var(--color) var(--solid), transparent);
   will-change: transform;
 }
 
 .ambient__blob--1 {
-  width: 46vmax;
-  height: 46vmax;
-  top: -14vmax;
-  right: -12vmax;
-  background: var(--blob-1);
+  --size: 46vmax;
+  --solid: 42%;
+  --color: var(--blob-1);
+  top: calc(-14vmax - 180px);
+  right: calc(-12vmax - 180px);
   animation: drift-1 26s var(--ease-in-out) infinite alternate;
 }
 
 .ambient__blob--2 {
-  width: 52vmax;
-  height: 52vmax;
-  bottom: -20vmax;
-  left: -16vmax;
-  background: var(--blob-2);
+  --size: 52vmax;
+  --solid: 47%;
+  --color: var(--blob-2);
+  bottom: calc(-20vmax - 180px);
+  left: calc(-16vmax - 180px);
   animation: drift-2 32s var(--ease-in-out) infinite alternate;
 }
 
 .ambient__blob--3 {
-  width: 30vmax;
-  height: 30vmax;
-  top: 40%;
-  left: 45%;
-  background: var(--blob-3);
+  --size: 30vmax;
+  --solid: 23%;
+  --color: var(--blob-3);
+  top: calc(40% - 180px);
+  left: calc(45% - 180px);
   animation: drift-3 22s var(--ease-in-out) infinite alternate;
 }
 
@@ -198,7 +223,7 @@ h4 {
 
 .ambient__noise {
   position: absolute;
-  inset: -50%;
+  inset: 0;
   opacity: var(--noise-opacity);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }

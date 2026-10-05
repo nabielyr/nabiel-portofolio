@@ -5,6 +5,7 @@
   background: var(--navy-950);
   color: #e8ecf7;
   will-change: transform;
+  transition: transform 0.85s cubic-bezier(0.76, 0, 0.24, 1);
 }
 
 [data-theme='light'] .preloader {
@@ -16,6 +17,20 @@
   display: grid;
   grid-template-rows: auto 1fr auto;
   padding: clamp(1.25rem, 3vw, 2.5rem);
+  will-change: transform, opacity;
+  transition:
+    opacity 0.5s cubic-bezier(0.76, 0, 0.24, 1),
+    transform 0.5s cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+/* Curtain lift — transform/opacity only, so it runs on the compositor */
+.exit {
+  transform: translate3d(0, -100%, 0);
+}
+
+.exit .content {
+  opacity: 0;
+  transform: translate3d(0, -40px, 0);
 }
 
 .top {
@@ -122,6 +137,8 @@
   height: 100%;
   background: var(--gradient-brand);
   transform-origin: 0 50%;
+  transform: scaleX(0);
+  will-change: transform;
   box-shadow: 0 0 20px var(--orange-500);
 }
 

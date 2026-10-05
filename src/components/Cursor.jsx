@@ -4,18 +4,24 @@ import styles from './Cursor.module.css'
 
 const INTERACTIVE = 'a, button, [role="button"], input, textarea, select, label, [data-cursor], .clickable'
 
+// Reticle follow speed (1/s). Frame-rate independent: same feel at 60Hz and 144Hz.
+const FOLLOW = 30
+const SETTLE = 0.1 // px — stop the loop once the reticle has caught up
+
 /**
  * AI Target Reticle / Precision Node Cursor
  *
  * Performance Architecture:
- * - Direct GPU translate3d on DOM refs (0ms lag, zero React re-renders on mousemove).
- * - Smooth 120fps lerp loop for the outer reticle brackets.
- * - Instant 1:1 hardware tracking for the precision center dot.
+ * - The precision dot is the native OS cursor (an SVG image set in global.css),
+ *   so it is drawn by the hardware cursor plane with zero latency and never
+ *   stutters, even when the page is busy.
+ * - The reticle brackets trail it with a time-based lerp written straight to a
+ *   DOM ref via translate3d (zero React re-renders on mousemove). The rAF loop
+ *   only runs while the reticle is still moving.
  * - Pure CSS transitions for state morphs (default -> hover -> locked -> label).
  */
 export default function Cursor() {
   const isTouch = useIsTouch()
-  const dotRef = useRef(null)
   const reticleRef = useRef(null)
   const layerRef = useRef(null)
 
@@ -39,43 +45,51 @@ export default function Cursor() {
     const root = document.documentElement
     root.classList.add('has-custom-cursor')
 
-    let rafId = null
+    let rafId = 0
+    let last = 0
 
-    // Direct pointermove: instantaneous update for the center dot
+    const place = (x, y) => {
+      if (reticleRef.current) reticleRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`
+    }
+
+    const tick = (now) => {
+      const p = pos.current
+      // rAF timestamps can trail performance.now() slightly on the first frame
+      const dt = Math.min(Math.max(now - last, 0) / 1000, 0.1)
+      last = now
+      const k = 1 - Math.exp(-dt * FOLLOW)
+      p.currentX += (p.targetX - p.currentX) * k
+      p.currentY += (p.targetY - p.currentY) * k
+
+      if (Math.abs(p.targetX - p.currentX) < SETTLE && Math.abs(p.targetY - p.currentY) < SETTLE) {
+        p.currentX = p.targetX
+        p.currentY = p.targetY
+        place(p.currentX, p.currentY)
+        rafId = 0
+        return
+      }
+      place(p.currentX, p.currentY)
+      rafId = requestAnimationFrame(tick)
+    }
+
     const onMove = (e) => {
-      const { clientX, clientY } = e
-      pos.current.targetX = clientX
-      pos.current.targetY = clientY
+      const p = pos.current
+      p.targetX = e.clientX
+      p.targetY = e.clientY
 
-      if (!pos.current.visible) {
-        pos.current.visible = true
-        pos.current.currentX = clientX
-        pos.current.currentY = clientY
+      if (!p.visible) {
+        p.visible = true
+        p.currentX = e.clientX
+        p.currentY = e.clientY
+        place(p.currentX, p.currentY)
         if (layerRef.current) layerRef.current.style.opacity = '1'
       }
 
-      // Zero-latency update for the center dot
-      if (dotRef.current) {
-        dotRef.current.style.transform = `translate3d(${clientX}px, ${clientY}px, 0)`
+      if (!rafId) {
+        last = performance.now()
+        rafId = requestAnimationFrame(tick)
       }
     }
-
-    // RAF loop: smooth interpolation for the cyber reticle brackets
-    const updateLoop = () => {
-      const p = pos.current
-      if (p.visible) {
-        // High-performance lerp factor: 0.20 provides snappy yet organic tracking
-        p.currentX += (p.targetX - p.currentX) * 0.22
-        p.currentY += (p.targetY - p.currentY) * 0.22
-
-        if (reticleRef.current) {
-          reticleRef.current.style.transform = `translate3d(${p.currentX}px, ${p.currentY}px, 0)`
-        }
-      }
-      rafId = requestAnimationFrame(updateLoop)
-    }
-
-    rafId = requestAnimationFrame(updateLoop)
 
     // Context / element detection
     let currentInteractiveEl = null
@@ -147,11 +161,6 @@ export default function Cursor() {
           {/* Label badge when hovering project cards */}
           {label && <span className={styles.labelText}>{label} ↗</span>}
         </div>
-      </div>
-
-      {/* Central Precision Point (0ms instant hardware sync) */}
-      <div ref={dotRef} className={styles.dotAnchor}>
-        <div className={`${styles.dot} ${hover ? styles.dotHover : ''}`} />
       </div>
     </div>
   )

@@ -6,7 +6,7 @@ import * as THREE from 'three'
  * "signal" pulses travelling forward. Neurons near the cursor fire.
  *
  *   const net = createNeuralNetwork({ theme: 'dark', compact: false })
- *   scene.add(net.group); net.update(r3fState, delta); net.dispose()
+ *   scene.add(net.group); net.setPixelRatio(dpr); net.update(r3fState, delta); net.dispose()
  */
 
 const PALETTES = {
@@ -76,10 +76,20 @@ function mulberry32(seed) {
   }
 }
 
+const POINT_SCALE = 38
+
+/**
+ * Attribute rewritten every frame. Without the dynamic usage hint the buffer is
+ * STATIC_DRAW, and on Windows (ANGLE → D3D11) each per-frame upload stalls the
+ * GPU thread waiting for the previous frame (~12ms/frame measured), starving
+ * page compositing and the cursor. With it, uploads are orphaned and cheap.
+ */
+const dynamicAttr = (array, size) => new THREE.BufferAttribute(array, size).setUsage(THREE.DynamicDrawUsage)
+
 const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2)
 const easeOut = (t) => 1 - Math.pow(1 - t, 3)
 
-function makeMaterial(palette, opacity, dpr) {
+function makeMaterial(palette, opacity) {
   return new THREE.ShaderMaterial({
     vertexShader,
     fragmentShader,
@@ -87,14 +97,14 @@ function makeMaterial(palette, opacity, dpr) {
     depthWrite: false,
     blending: palette.blending,
     uniforms: {
-      uScale: { value: dpr * 38 },
+      uScale: { value: POINT_SCALE },
       uOpacity: { value: opacity },
       uCore: { value: palette.core },
     },
   })
 }
 
-export function createNeuralNetwork({ theme = 'dark', compact = false, dpr = 1 } = {}) {
+export function createNeuralNetwork({ theme = 'dark', compact = false } = {}) {
   const palette = PALETTES[theme] ?? PALETTES.dark
   const rng = mulberry32(20240801)
   const layers = compact ? [4, 7, 9, 7, 4] : [5, 9, 12, 12, 9, 5]
@@ -148,11 +158,11 @@ export function createNeuralNetwork({ theme = 'dark', compact = false, dpr = 1 }
   })
 
   const nodeGeo = new THREE.BufferGeometry()
-  nodeGeo.setAttribute('position', new THREE.BufferAttribute(nodePos, 3))
-  nodeGeo.setAttribute('aSize', new THREE.BufferAttribute(nodeSize, 1))
-  nodeGeo.setAttribute('aAct', new THREE.BufferAttribute(nodeAct, 1))
+  nodeGeo.setAttribute('position', dynamicAttr(nodePos, 3))
+  nodeGeo.setAttribute('aSize', dynamicAttr(nodeSize, 1))
+  nodeGeo.setAttribute('aAct', dynamicAttr(nodeAct, 1))
   nodeGeo.setAttribute('aColor', new THREE.BufferAttribute(nodeColor, 3))
-  const nodeMat = makeMaterial(palette, palette.nodeOpacity, dpr)
+  const nodeMat = makeMaterial(palette, palette.nodeOpacity)
   const nodePoints = new THREE.Points(nodeGeo, nodeMat)
   nodePoints.frustumCulled = false
 
@@ -191,7 +201,7 @@ export function createNeuralNetwork({ theme = 'dark', compact = false, dpr = 1 }
     }
   })
   const edgeGeo = new THREE.BufferGeometry()
-  edgeGeo.setAttribute('position', new THREE.BufferAttribute(edgePos, 3))
+  edgeGeo.setAttribute('position', dynamicAttr(edgePos, 3))
   edgeGeo.setAttribute('color', new THREE.BufferAttribute(edgeColor, 3))
   const edgeMat = new THREE.LineBasicMaterial({
     vertexColors: true,
@@ -212,11 +222,11 @@ export function createNeuralNetwork({ theme = 'dark', compact = false, dpr = 1 }
   const pc = new THREE.Color(palette.pulse)
   for (let i = 0; i < pulseCount; i++) pc.toArray(pulseColor, i * 3)
   const pulseGeo = new THREE.BufferGeometry()
-  pulseGeo.setAttribute('position', new THREE.BufferAttribute(pulsePos, 3))
-  pulseGeo.setAttribute('aSize', new THREE.BufferAttribute(pulseSize, 1))
-  pulseGeo.setAttribute('aAct', new THREE.BufferAttribute(pulseAct, 1))
+  pulseGeo.setAttribute('position', dynamicAttr(pulsePos, 3))
+  pulseGeo.setAttribute('aSize', dynamicAttr(pulseSize, 1))
+  pulseGeo.setAttribute('aAct', dynamicAttr(pulseAct, 1))
   pulseGeo.setAttribute('aColor', new THREE.BufferAttribute(pulseColor, 3))
-  const pulseMat = makeMaterial(palette, 1, dpr)
+  const pulseMat = makeMaterial(palette, 1)
   const pulsePoints = new THREE.Points(pulseGeo, pulseMat)
   pulsePoints.frustumCulled = false
 
@@ -238,7 +248,7 @@ export function createNeuralNetwork({ theme = 'dark', compact = false, dpr = 1 }
   dustGeo.setAttribute('aSize', new THREE.BufferAttribute(dustSize, 1))
   dustGeo.setAttribute('aAct', new THREE.BufferAttribute(dustAct, 1))
   dustGeo.setAttribute('aColor', new THREE.BufferAttribute(dustColor, 3))
-  const dustMat = makeMaterial(palette, palette.dustOpacity, dpr)
+  const dustMat = makeMaterial(palette, palette.dustOpacity)
   const dustPoints = new THREE.Points(dustGeo, dustMat)
   dustPoints.frustumCulled = false
 
@@ -357,9 +367,16 @@ export function createNeuralNetwork({ theme = 'dark', compact = false, dpr = 1 }
     pulseGeo.attributes.aAct.needsUpdate = true
   }
 
+  /** Point sizes are in device pixels; update them in place when the DPR changes. */
+  function setPixelRatio(dpr) {
+    nodeMat.uniforms.uScale.value = dpr * POINT_SCALE
+    pulseMat.uniforms.uScale.value = dpr * POINT_SCALE
+    dustMat.uniforms.uScale.value = dpr * POINT_SCALE
+  }
+
   function dispose() {
     ;[nodeGeo, edgeGeo, pulseGeo, dustGeo, nodeMat, edgeMat, pulseMat, dustMat].forEach((o) => o.dispose())
   }
 
-  return { group: root, update, dispose }
+  return { group: root, update, setPixelRatio, dispose }
 }

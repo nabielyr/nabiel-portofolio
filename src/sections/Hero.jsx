@@ -5,6 +5,7 @@ import { useLanguage, useTheme } from '../context/contexts'
 import { useIsTouch, useMediaQuery } from '../hooks/useMediaQuery'
 import { profile } from '../data/profile'
 import { scrollToTarget } from '../lib/smoothScroll'
+import { markSceneReady } from '../lib/sceneReady'
 import Button from '../components/Button'
 import RotatingText from '../components/RotatingText'
 import styles from './Hero.module.css'
@@ -16,6 +17,21 @@ if (typeof window !== 'undefined') {
 }
 
 const ease = [0.22, 1, 0.36, 1]
+
+// Invisible (< 1/255) but not 0: Chrome skips rasterizing opacity-0 content, so
+// starting at 0 made the photo, chips etc. decode and raster all at once right
+// as the curtain lifted. At 0.001 that work happens behind the Preloader.
+const HIDDEN = 0.001
+
+// Intro variants animate the full `transform` string (not x/y/rotate) so Motion
+// hands them to WAAPI and they run on the compositor, off the main thread.
+const rise = (distance, delay, duration = 0.8) => ({
+  hidden: { opacity: HIDDEN, transform: `translateY(${distance}px)` },
+  show: { opacity: 1, transform: 'translateY(0px)', transition: { duration, delay, ease } },
+})
+
+// "Nabiel" is the everyday name, so it carries the accent; the period closes the full name
+const NAME_WORDS = [{ w: 'Muhammad' }, { w: 'Nabiel', accent: true }, { w: 'Yandra' }]
 
 /** Letters that swell (variable font weight) when hovered. */
 function HoverWord({ word, className = '' }) {
@@ -56,6 +72,11 @@ export default function Hero({ ready }) {
     return () => io.disconnect()
   }, [])
 
+  // No canvas to wait for — let the Preloader start right away
+  useEffect(() => {
+    if (reduceMotion) markSceneReady()
+  }, [reduceMotion])
+
   // Photo tilt following the cursor
   const mx = useMotionValue(0)
   const my = useMotionValue(0)
@@ -71,7 +92,6 @@ export default function Hero({ ready }) {
   }
 
   const show = ready ? 'show' : 'hidden'
-  const nameWords = [{ w: 'Muhammad' }, { w: 'Nabiel' }, { w: 'Yandra', accent: true }]
 
   return (
     <section id="home" ref={heroRef} className={styles.hero} onPointerMove={onPointerMove}>
@@ -86,33 +106,30 @@ export default function Hero({ ready }) {
 
       <div className={`container ${styles.inner}`}>
         <motion.div className={styles.content} initial="hidden" animate={show}>
-          <motion.p
-            className={styles.location}
-            variants={{ hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transition: { duration: 0.8, ease } } }}
-          >
+          <motion.p className={styles.location} variants={rise(16, 0)}>
             <span className={styles.liveDot} />
             {t('hero.location')}
           </motion.p>
 
-          <motion.p
-            className={styles.greeting}
-            variants={{ hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transition: { duration: 0.8, delay: 0.1, ease } } }}
-          >
+          <motion.p className={styles.greeting} variants={rise(16, 0.1)}>
             {t('hero.greeting')}
           </motion.p>
 
           <h1 className={styles.name} aria-label={profile.name}>
-            {nameWords.map(({ w, accent }, i) => (
+            {NAME_WORDS.map(({ w, accent }, i) => (
               <span key={w} className={`${styles.line} ${i === 0 ? styles.lineFirst : ''}`} aria-hidden="true">
                 <motion.span
                   className={styles.lineInner}
                   variants={{
-                    hidden: { y: '115%', rotate: 4 },
-                    show: { y: '0%', rotate: 0, transition: { duration: 1.1, delay: 0.2 + i * 0.12, ease } },
+                    hidden: { transform: 'translateY(115%) rotate(4deg)' },
+                    show: {
+                      transform: 'translateY(0%) rotate(0deg)',
+                      transition: { duration: 1.1, delay: 0.2 + i * 0.12, ease },
+                    },
                   }}
                 >
                   <HoverWord word={w} className={accent ? styles.accentWord : ''} />
-                  {accent && <span className={styles.period}>.</span>}
+                  {i === NAME_WORDS.length - 1 && <span className={styles.period}>.</span>}
                 </motion.span>
               </span>
             ))}
@@ -120,23 +137,17 @@ export default function Hero({ ready }) {
 
           <motion.div
             className={styles.role}
-            variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { duration: 0.8, delay: 0.7 } } }}
+            variants={{ hidden: { opacity: HIDDEN }, show: { opacity: 1, transition: { duration: 0.8, delay: 0.7 } } }}
           >
             <span className={styles.prompt}>&gt;_</span>
             <RotatingText key={lang} words={t('hero.roles')} start={ready} />
           </motion.div>
 
-          <motion.p
-            className={styles.intro}
-            variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.9, delay: 0.8, ease } } }}
-          >
+          <motion.p className={styles.intro} variants={rise(20, 0.8, 0.9)}>
             {t('hero.intro')}
           </motion.p>
 
-          <motion.div
-            className={styles.ctas}
-            variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.9, delay: 0.95, ease } } }}
-          >
+          <motion.div className={styles.ctas} variants={rise(20, 0.95, 0.9)}>
             <Button
               id="cta-projects"
               href="#projects"
@@ -164,8 +175,8 @@ export default function Hero({ ready }) {
 
         <motion.div
           className={styles.visual}
-          initial={{ opacity: 0, scale: 0.9, y: 30 }}
-          animate={ready ? { opacity: 1, scale: 1, y: 0 } : {}}
+          initial={{ opacity: HIDDEN, transform: 'translateY(30px) scale(0.9)' }}
+          animate={ready ? { opacity: 1, transform: 'translateY(0px) scale(1)' } : {}}
           transition={{ duration: 1.2, delay: 0.35, ease }}
         >
           <motion.div className={styles.photoTilt} style={{ rotateX, rotateY }}>
@@ -192,7 +203,7 @@ export default function Hero({ ready }) {
               key={chip.pos}
               className={`${styles.chip} ${styles[chip.pos]}`}
               style={{ x: chipX, y: chipY }}
-              initial={{ opacity: 0, scale: 0.6 }}
+              initial={{ opacity: HIDDEN, scale: 0.6 }}
               animate={ready ? { opacity: 1, scale: 1 } : {}}
               transition={{ duration: 0.6, delay: 1.1 + chip.delay, ease }}
             >
@@ -204,7 +215,7 @@ export default function Hero({ ready }) {
 
       <motion.div
         className={styles.bottom}
-        initial={{ opacity: 0 }}
+        initial={{ opacity: HIDDEN }}
         animate={ready ? { opacity: 1 } : {}}
         transition={{ delay: 1.6, duration: 1 }}
       >

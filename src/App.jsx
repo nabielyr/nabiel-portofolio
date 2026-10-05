@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { motion, useScroll, useSpring, AnimatePresence } from 'framer-motion'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
+import { motion, useScroll, useSpring } from 'framer-motion'
 import { ThemeProvider } from './context/ThemeProvider'
 import { LanguageProvider } from './context/LanguageProvider'
 import { initSmoothScroll, destroySmoothScroll } from './lib/smoothScroll'
@@ -17,29 +17,18 @@ import Skills from './sections/Skills'
 import Projects from './sections/Projects'
 import Contact from './sections/Contact'
 
-function Portfolio() {
-  const [loading, setLoading] = useState(true)
-  const [heroReady, setHeroReady] = useState(false)
+/*
+ * Everything except the Preloader and Hero is memoized, so the intro state
+ * changes (curtain lift, hero ready, preloader unmount) re-render only those
+ * two instead of the whole page — a full re-render there (incl. the Projects
+ * layout measurements) is what used to freeze the curtain.
+ */
+const Chrome = memo(function Chrome() {
   const { scrollYProgress } = useScroll()
   const scaleX = useSpring(scrollYProgress, { stiffness: 200, damping: 30, restDelta: 0.001 })
 
-  useEffect(() => {
-    initSmoothScroll()
-    return () => destroySmoothScroll()
-  }, [])
-
-  const handlePreloaderDone = () => {
-    setLoading(false)
-    // Stagger hero text entrance slightly with curtain lift for maximum smoothness
-    setTimeout(() => setHeroReady(true), 160)
-  }
-
   return (
     <>
-      <AnimatePresence onExitComplete={() => setHeroReady(true)}>
-        {loading && <Preloader onDone={handlePreloaderDone} />}
-      </AnimatePresence>
-
       <Cursor />
 
       {/* Top scroll progress indicator */}
@@ -55,18 +44,57 @@ function Portfolio() {
       </div>
 
       <Navbar />
+    </>
+  )
+})
+
+const Sections = memo(function Sections() {
+  return (
+    <>
+      <About />
+      <Experience />
+      <Education />
+      <Skills />
+      <Projects />
+      <Contact />
+    </>
+  )
+})
+
+const HeroSection = memo(Hero)
+const SiteFooter = memo(Footer)
+
+function Portfolio() {
+  const [loading, setLoading] = useState(true)
+  const [heroReady, setHeroReady] = useState(false)
+  const revealTimer = useRef(0)
+
+  useEffect(() => {
+    initSmoothScroll()
+    return () => {
+      destroySmoothScroll()
+      clearTimeout(revealTimer.current)
+    }
+  }, [])
+
+  // Stagger hero text entrance slightly behind the curtain lift
+  const handleReveal = useCallback(() => {
+    revealTimer.current = setTimeout(() => setHeroReady(true), 160)
+  }, [])
+  const handleDone = useCallback(() => setLoading(false), [])
+
+  return (
+    <>
+      {loading && <Preloader onReveal={handleReveal} onDone={handleDone} />}
+
+      <Chrome />
 
       <main id="main-content">
-        <Hero ready={heroReady} />
-        <About />
-        <Experience />
-        <Education />
-        <Skills />
-        <Projects />
-        <Contact />
+        <HeroSection ready={heroReady} />
+        <Sections />
       </main>
 
-      <Footer />
+      <SiteFooter />
     </>
   )
 }
