@@ -34,7 +34,7 @@ const id = {
     title: 'Penasaran secara alami,',
     titleAccent: 'membangun karena kebiasaan.',
     lead: 'Saya Nabiel, mahasiswa Sistem Informasi di Universitas Brawijaya dan calon AI/ML engineer. Saya senang mengubah ide menarik menjadi proyek nyata, mulai dari perancangan sistem dan pengembangan web hingga data science dan machine learning.',
-    body: 'Pengalaman mengajar pemrograman kepada puluhan mahasiswa dan berkontribusi di berbagai acara kampus telah mengasah kemampuan analitis, komunikasi, dan kerja tim saya. Kini saya menyalurkannya untuk membangun sistem cerdas yang berdampak nyata. Kalau ada ide yang muncul, kemungkinan besar akan saya wujudkan.',
+    body: 'Mengajar pemrograman kepada puluhan mahasiswa, berkontribusi aktif dalam organisasi kampus seperti UKM FORMASI UB dan SGE FILKOM, serta berkolaborasi dalam proyek laboratorium telah mengasah kemampuan analitis, komunikasi, dan kepemimpinan saya. Kini saya menyalurkannya untuk membangun sistem cerdas yang berdampak nyata.',
     stats: [
       { value: 49, suffix: '+', label: 'Mahasiswa dibimbing' },
       { value: 5, suffix: '', label: 'Peran & posisi' },

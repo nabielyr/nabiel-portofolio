@@ -20,8 +20,8 @@ export const education = [
       id: 'Berfokus pada pengembangan sistem, kecerdasan data, dan machine learning. Merupakan resident aktif di Intelligent System Laboratory (FILKOM UB), terlibat dalam proyek akademik bersama dosen, serta menjadi asisten praktikum untuk mata kuliah pemrograman dan rekayasa sistem.',
     },
     highlights: {
-      en: ['System Development', 'Data Science', 'Artificial Intelligence', 'Intelligent System Lab (Resident)', 'Teaching Assistant'],
-      id: ['Pengembangan Sistem', 'Data Science', 'Kecerdasan Buatan', 'Intelligent System Lab (Resident)', 'Asisten Praktikum'],
+      en: ['System Development', 'Data Science', 'Artificial Intelligence', 'IS Lab Resident', 'Member of UKM FORMASI UB', 'Teaching Assistant'],
+      id: ['Pengembangan Sistem', 'Data Science', 'Kecerdasan Buatan', 'Resident Lab IS', 'Anggota UKM FORMASI UB', 'Asisten Praktikum'],
     },
   },
 ]

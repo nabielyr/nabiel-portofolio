@@ -34,7 +34,7 @@ const en = {
     title: 'Curious by nature,',
     titleAccent: 'builder by habit.',
     lead: "I'm Nabiel, an Information Systems student at Universitas Brawijaya and an aspiring AI/ML engineer. I love turning interesting ideas into real projects, from system design and web development to data science and machine learning.",
-    body: "Teaching programming to dozens of students and contributing to campus events has sharpened my analytical, communication, and teamwork skills. Now I'm channeling them into building intelligent systems that make a real impact. If an idea pops into my head, chances are I'll build it.",
+    body: "Teaching programming to dozens of students, actively contributing to campus organizations like UKM FORMASI UB and SGE FILKOM, and collaborating on lab projects has sharpened my analytical, communication, and leadership skills. Now I'm channeling them into building intelligent systems that make a real impact.",
     stats: [
       { value: 49, suffix: '+', label: 'Students mentored' },
       { value: 5, suffix: '', label: 'Roles & positions' },

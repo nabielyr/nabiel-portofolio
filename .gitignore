@@ -17,8 +17,10 @@ dist-ssr
 !.vscode/extensions.json
 .idea
 .DS_Store
-# Raw media assets in root
+# Raw media assets
 /*.png
 /*.jpg
 /*.webp
+/assets/originals/
+
 
