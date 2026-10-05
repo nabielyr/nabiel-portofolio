@@ -28,7 +28,6 @@ const id = {
     ctaProjects: 'Lihat Proyek',
     ctaContact: 'Hubungi Saya',
     scroll: 'Scroll untuk menjelajah',
-    hint: 'gerakkan kursor · neuron bereaksi',
   },
   about: {
     eyebrow: 'about.py',

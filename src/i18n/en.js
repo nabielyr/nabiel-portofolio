@@ -28,7 +28,6 @@ const en = {
     ctaProjects: 'View Projects',
     ctaContact: 'Get in Touch',
     scroll: 'Scroll to explore',
-    hint: 'move your cursor · neurons react',
   },
   about: {
     eyebrow: 'about.py',

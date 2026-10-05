@@ -211,7 +211,6 @@ export default function Hero({ ready }) {
           <span>{t('hero.scroll')}</span>
           <FiArrowDown className={styles.arrow} />
         </button>
-        {!isTouch && !reduceMotion && <span className={styles.hint}>{t('hero.hint')}</span>}
       </motion.div>
     </section>
   )
