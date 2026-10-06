@@ -1,28 +1,37 @@
 import {
-  SiPytorch, SiTensorflow, SiScikitlearn, SiKaggle,
-  SiPython, SiPhp, SiHtml5, SiMysql,
+  SiPytorch, SiTensorflow, SiScikitlearn, SiKaggle, SiHuggingface, SiMediapipe, SiOpencv,
+  SiPandas, SiNumpy, SiJupyter, SiGooglecolab,
+  SiPython, SiPhp, SiHtml5, SiMysql, SiFastapi, SiRedis,
   SiDocker, SiGit, SiGithub, SiGitlab,
   SiReact, SiVite, SiThreedotjs, SiFramer, SiJavascript, SiCss, SiVercel,
 } from 'react-icons/si'
 import { FaJava } from 'react-icons/fa6'
-import { FiGitMerge, FiMic, FiMessageCircle, FiTarget, FiZap, FiUsers, FiAward } from 'react-icons/fi'
+import {
+  FiGitMerge, FiMic, FiMessageCircle, FiTarget, FiZap, FiUsers, FiAward, FiBarChart2, FiTrendingUp,
+} from 'react-icons/fi'
 
 /**
  * Skill groups. `color` is the brand color revealed on hover.
- * `span` controls the bento-grid size (1, 2, or 3 columns).
+ * `span` controls the bento-grid size (1, 2, or 3 columns); each row of the
+ * grid should add up to 3.
  */
 export const skillGroups = [
   {
     id: 'ml',
-    title: { en: 'Machine Learning & Data', id: 'Machine Learning & Data' },
-    caption: { en: 'Training models, exploring datasets.', id: 'Melatih model, mengeksplorasi dataset.' },
+    title: { en: 'Machine Learning & AI', id: 'Machine Learning & AI' },
+    caption: {
+      en: 'From classic models to fine-tuned transformers and computer vision.',
+      id: 'Dari model klasik sampai transformer yang di-fine-tune dan computer vision.',
+    },
     span: 2,
     visual: 'loss',
     items: [
       { name: 'PyTorch', icon: SiPytorch, color: '#EE4C2C' },
       { name: 'TensorFlow', icon: SiTensorflow, color: '#FF6F00' },
       { name: 'scikit-learn', icon: SiScikitlearn, color: '#F7931E' },
-      { name: 'Kaggle', icon: SiKaggle, color: '#20BEFF' },
+      { name: 'Hugging Face', icon: SiHuggingface, color: '#FFD21E' },
+      { name: 'MediaPipe', icon: SiMediapipe, color: '#0097A7' },
+      { name: 'OpenCV', icon: SiOpencv, color: '#5C3EE8' },
     ],
   },
   {
@@ -38,6 +47,17 @@ export const skillGroups = [
     ],
   },
   {
+    id: 'backend',
+    title: { en: 'Backend & Data Storage', id: 'Backend & Penyimpanan Data' },
+    caption: { en: 'APIs and databases behind the apps.', id: 'API dan database di balik aplikasi.' },
+    span: 1,
+    items: [
+      { name: 'FastAPI', icon: SiFastapi, color: '#009688' },
+      { name: 'MySQL', icon: SiMysql, color: '#4479A1' },
+      { name: 'Redis', icon: SiRedis, color: '#FF4438' },
+    ],
+  },
+  {
     id: 'web',
     title: { en: 'Frontend & Interactive Web', id: 'Frontend & Web Interaktif' },
     caption: { en: 'Technologies powering this portfolio.', id: 'Teknologi di balik portfolio ini.' },
@@ -49,7 +69,21 @@ export const skillGroups = [
       { name: 'Framer Motion', icon: SiFramer, color: '#0055FF' },
       { name: 'HTML5', icon: SiHtml5, color: '#E34F26' },
       { name: 'CSS3', icon: SiCss, color: '#1572B6' },
-      { name: 'MySQL', icon: SiMysql, color: '#4479A1' },
+    ],
+  },
+  {
+    id: 'data',
+    title: { en: 'Data Analysis', id: 'Analisis Data' },
+    caption: { en: 'Cleaning, exploring and visualizing data.', id: 'Membersihkan, mengeksplorasi, dan memvisualisasikan data.' },
+    span: 2,
+    items: [
+      { name: 'Pandas', icon: SiPandas, color: '#E70488' },
+      { name: 'NumPy', icon: SiNumpy, color: '#4DABCF' },
+      { name: 'Matplotlib', icon: FiBarChart2, color: '#11557C' },
+      { name: 'Seaborn', icon: FiTrendingUp, color: '#4C72B0' },
+      { name: 'Jupyter', icon: SiJupyter, color: '#F37626' },
+      { name: 'Google Colab', icon: SiGooglecolab, color: '#F9AB00' },
+      { name: 'Kaggle', icon: SiKaggle, color: '#20BEFF' },
     ],
   },
   {
@@ -85,9 +119,9 @@ export const skillGroups = [
 ]
 
 export const marqueeItems = [
-  'Python', 'PyTorch', 'TensorFlow', 'scikit-learn', 'Kaggle',
+  'Python', 'PyTorch', 'TensorFlow', 'scikit-learn', 'Hugging Face', 'MediaPipe', 'OpenCV',
+  'Pandas', 'NumPy', 'Matplotlib', 'Seaborn', 'Jupyter', 'Kaggle',
   'React', 'Vite', 'Three.js', 'Framer Motion', 'JavaScript',
-  'Java', 'PHP', 'HTML5', 'CSS3', 'MySQL',
+  'Java', 'PHP', 'HTML5', 'CSS3', 'FastAPI', 'MySQL', 'Redis',
   'Docker', 'Git', 'GitHub', 'GitLab', 'Vercel', 'BPMN',
 ]
-

@@ -38,7 +38,7 @@ const id = {
     stats: [
       { value: 49, suffix: '+', label: 'Mahasiswa dibimbing' },
       { value: 5, suffix: '', label: 'Peran & posisi' },
-      { value: 20, suffix: '+', label: 'Tools & teknologi' },
+      { value: 30, suffix: '+', label: 'Tools & teknologi' },
     ],
     residentBadge: 'Resident Laboratorium',
     labTitle: 'Intelligent System Laboratory · FILKOM UB',

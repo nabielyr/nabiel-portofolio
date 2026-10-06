@@ -38,7 +38,7 @@ const en = {
     stats: [
       { value: 49, suffix: '+', label: 'Students mentored' },
       { value: 5, suffix: '', label: 'Roles & positions' },
-      { value: 20, suffix: '+', label: 'Tools & technologies' },
+      { value: 30, suffix: '+', label: 'Tools & technologies' },
     ],
     residentBadge: 'Laboratory Resident',
     labTitle: 'Intelligent System Laboratory · FILKOM UB',
