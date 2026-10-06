@@ -1,92 +1,83 @@
-# Muhammad Nabiel Yandra - Portfolio Website
+# nabiel-portofolio
 
-> 🌐 **Live Website:** [https://nabiel-portofolio-five.vercel.app/](https://nabiel-portofolio-five.vercel.app/)
+My personal portfolio. It's where I keep track of what I'm learning, where I've contributed, and the things I build.
 
-Personal portfolio website built with **React + Vite**, **Three.js** (interactive 3D neural network), **Framer Motion**, and **Lenis** smooth scroll.
+▶ **Visit it here: [nabiel-portofolio-five.vercel.app](https://nabiel-portofolio-five.vercel.app/)**
 
-Designed with the **"From Data to Intelligence"** theme, merging **Information Systems**, **AI/ML**, and **Data Science**.
+![The hero section: my name, a short intro, and an interactive neural network behind it](public/projects/portfolio.webp)
 
----
+Hi, I'm Nabiel, an Information Systems student at Brawijaya University in Malang, Indonesia. I'm a resident and teaching assistant at the Intelligent System Laboratory, and I'm working my way toward AI/ML engineering and data science. I wanted a site that feels like that path: a little bit of system design, a little bit of data, and a neural network you can actually poke at.
 
-## 🚀 Quick Start (Local Development)
+## What's on the page
+
+- **Hero.** A small neural network built in Three.js sits behind my name. It slowly drifts, sends signals forward from layer to layer, and the neurons near your cursor light up and fire.
+- **"Training" intro.** The site opens with a counter going from 0 to 100 like a model training run, then the curtain lifts.
+- **About, Education and Experience.** My background, the lab and organizations I'm part of, and a timeline styled like a BPMN process (a nod to my Information Systems classes).
+- **Skills.** A bento grid of the tools I use, plus a scrolling ticker that leans with your scroll speed.
+- **Projects.** Filterable by category. Each category keeps one "coming soon" card for whatever I'm working on next.
+- **Contact.** Copy my email in one click, with my local time (WIB) shown next to it.
+
+It's fully bilingual (English and Bahasa Indonesia) and has both a dark and a light theme.
+
+## Built with
+
+- [React 19](https://react.dev/) and [Vite](https://vite.dev/)
+- [Three.js](https://threejs.org/) with [React Three Fiber](https://r3f.docs.pmnd.rs/) for the hero scene
+- [Framer Motion](https://motion.dev/) for animations
+- [Lenis](https://lenis.darkroom.engineering/) for smooth scrolling
+- Plain CSS Modules with design tokens (no CSS framework)
+- Hosted on [Vercel](https://vercel.com/)
+
+## Keeping it smooth
+
+A live WebGL scene on a landing page can easily make everything else feel heavy, so I spent some time on this:
+
+- The intro counter waits until the 3D scene and fonts are ready before it starts, so the count never stutters halfway.
+- The curtain and the hero entrance run on the GPU compositor, so they stay smooth even while the page is still busy loading.
+- The network's geometry is updated every frame, so its buffers are marked as dynamic. On Windows that alone made the canvas about 30 times cheaper to draw.
+- The center dot of the custom cursor is a real system cursor image, so it never lags behind your mouse. Only the bracket around it is animated.
+
+## Running it locally
+
+You'll need [Node.js](https://nodejs.org/) 20.19+ or 22.12+ (what Vite 8 requires).
 
 ```bash
-# 1. Install dependencies (if cloning fresh)
 npm install
-
-# 2. Run local dev server
-npm run dev
-
-# 3. Build for production (same check as Vercel)
-npm run build
+npm run dev       # http://localhost:5173
 ```
 
-The dev server will run at `http://localhost:5173`.
-
----
-
-## 🛠️ How to Add / Update Projects
-
-You only need to edit **one single file**:
-
-📄 [`src/data/projects.js`](file:///c:/Users/Pongo/Documents/Coding/Antigravity/Portofolio/src/data/projects.js)
-
-Add a new item to the `projects` array:
-
-```javascript
-{
-  id: 'my-project-slug',
-  title: 'My Project Name',
-  category: 'ai-ml', // Choose from: 'ai-ml' | 'data-science' | 'web-dev' | 'fun'
-  description: {
-    en: 'English description of your project...',
-    id: 'Deskripsi proyek dalam bahasa Indonesia...',
-  },
-  tech: ['Python', 'PyTorch', 'FastAPI'],
-  image: '/projects/my-screenshot.webp', // Optional: put image in public/projects/
-  github: 'https://github.com/nabielyr/...',
-  demo: 'https://...', // Optional live link
-  featured: true, // true = larger card highlight
-  year: 2026,
-  status: 'completed', // or 'in-progress'
-}
-```
-
-> **Note on Images:** If `image` is left empty `""`, an interactive **generative artwork cover** matching the category is drawn automatically.
-
----
-
-## 📄 How to Add Your CV / Resume
-
-1. Place your PDF in [`public/cv/`](file:///c:/Users/Pongo/Documents/Coding/Antigravity/Portofolio/public/cv/) (e.g. `CV_Muhammad_Nabiel_Yandra.pdf`).
-2. Open [`src/data/profile.js`](file:///c:/Users/Pongo/Documents/Coding/Antigravity/Portofolio/src/data/profile.js).
-3. Change `cv: null` to:
-   ```javascript
-   cv: '/cv/CV_Muhammad_Nabiel_Yandra.pdf'
-   ```
-The "Resume" download button in the navigation bar will automatically appear!
-
----
-
-## 🌐 Deploy to GitHub & Vercel
-
-### Step 1: Push to GitHub
+Other scripts:
 
 ```bash
-git add .
-git commit -m "feat: complete interactive portfolio website"
-git branch -M main
-gh repo create nabiel-portofolio --public --source=. --remote=origin --push
+npm run build     # production build into dist/
+npm run preview   # serve the production build locally
+npm run lint      # ESLint
 ```
 
-### Step 2: Connect to Vercel
+## Updating the content
 
-1. Go to [vercel.com](https://vercel.com) and log in with your GitHub account.
-2. Click **Add New...** > **Project**.
-3. Import the `nabiel-portofolio` repository.
-4. Framework Preset will be automatically detected as **Vite**.
-5. Click **Deploy**.
+All the content lives in plain data files, so updating the site rarely means touching a component.
 
-Live production deployment: [https://nabiel-portofolio-five.vercel.app/](https://nabiel-portofolio-five.vercel.app/)
+| What | Where |
+| --- | --- |
+| Name, email, social links, CV | `src/data/profile.js` |
+| Projects and filter categories | `src/data/projects.js` |
+| Experience timeline | `src/data/experience.js` |
+| Education and affiliations | `src/data/education.js` |
+| Skills and ticker | `src/data/skills.js` |
+| Interface text (EN / ID) | `src/i18n/en.js` and `src/i18n/id.js` |
 
-Every future `git push` to your `main` branch will automatically deploy!
+A few notes:
+
+- **Projects.** Pick a category (`ai-ml`, `data-science`, `web-dev` or `fun`) and add a `{ en, id }` description. Project screenshots go in `public/projects/` (WebP works best). If `image` is left empty, a generated cover matching the category is drawn instead.
+- **CV.** Put the PDF in `public/cv/` and set `cv` in `profile.js` to its path, e.g. `'/cv/CV_Muhammad_Nabiel_Yandra.pdf'`. The download button shows up on its own.
+- **Text.** Anything that appears on the page should be added to both `en.js` and `id.js`.
+
+Every push to `main` is deployed to Vercel automatically.
+
+## Get in touch
+
+- Email: [nabielyandra@gmail.com](mailto:nabielyandra@gmail.com)
+- LinkedIn: [in/nabiel-yandra](https://linkedin.com/in/nabiel-yandra)
+- GitHub: [@nabielyr](https://github.com/nabielyr)
+- Linktree: [linktr.ee/nabielyandra](https://linktr.ee/nabielyandra)
