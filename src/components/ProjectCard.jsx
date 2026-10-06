@@ -27,13 +27,15 @@ const ProjectCard = forwardRef(function ProjectCard({ project }, ref) {
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       className={`${styles.card} ${project.featured ? styles.featured : ''}`}
       onMouseMove={onMove}
-      data-cursor-label={primaryLink ? t('projects.view') : undefined}
       id={`project-${project.id}`}
     >
       {primaryLink && (
         <a
           className={styles.overlayLink}
           href={primaryLink}
+          // Label lives on the overlay, not the card, so it gives way to the
+          // GitHub / demo icons that sit above it
+          data-cursor-label={t('projects.view')}
           target="_blank"
           rel="noopener noreferrer"
           aria-label={`${project.title} - ${t('projects.view')}`}
