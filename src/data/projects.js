@@ -52,6 +52,21 @@ export const projects = [
     year: 2026,
   },
   {
+    id: 'signspeak',
+    title: 'SignSpeak',
+    category: 'ai-ml',
+    description: {
+      en: 'Reads American Sign Language from a webcam in real time. MediaPipe tracks both hands, a Random Forest recognizes each word from 30 frames of motion, and the collected words are turned into a sentence and read out loud.',
+      id: 'Membaca American Sign Language dari webcam secara real-time. MediaPipe melacak kedua tangan, model Random Forest mengenali tiap kata dari 30 frame gerakan, lalu kata-kata yang terkumpul disusun menjadi kalimat dan dibacakan dengan suara.',
+    },
+    tech: ['Python', 'MediaPipe', 'scikit-learn', 'FastAPI'],
+    image: '',
+    github: 'https://github.com/nabielyr/SignLanguage',
+    demo: '',
+    featured: true,
+    year: 2026,
+  },
+  {
     id: 'placeholder-fun-1',
     title: 'Untitled Fun Project',
     category: 'fun',
