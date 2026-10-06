@@ -69,6 +69,13 @@
   min-height: 260px;
 }
 
+/* Real screenshots keep their framing; only generative covers stretch */
+.featured .cover.coverPhoto {
+  aspect-ratio: 16 / 10;
+  flex: none;
+  min-height: 0;
+}
+
 .coverImg {
   width: 100%;
   height: 100%;

@@ -40,7 +40,7 @@ const ProjectCard = forwardRef(function ProjectCard({ project }, ref) {
         />
       )}
 
-      <div className={styles.cover}>
+      <div className={`${styles.cover} ${project.image ? styles.coverPhoto : ''}`}>
         {project.image ? (
           <img src={project.image} alt={project.title} loading="lazy" className={styles.coverImg} />
         ) : (
