@@ -2,6 +2,7 @@ import { forwardRef } from 'react'
 import { motion } from 'framer-motion'
 import { FiArrowUpRight, FiGithub } from 'react-icons/fi'
 import { useLanguage } from '../context/contexts'
+import { categoriesOf } from '../data/projects'
 import ProjectCover from './ProjectCover'
 import styles from './ProjectCard.module.css'
 
@@ -9,6 +10,7 @@ const ProjectCard = forwardRef(function ProjectCard({ project }, ref) {
   const { t, pick } = useLanguage()
   const primaryLink = project.demo || project.github
   const inProgress = project.status === 'in-progress'
+  const categories = categoriesOf(project)
 
   // Spotlight that follows the cursor (CSS variables, no re-render)
   const onMove = (e) => {
@@ -46,10 +48,14 @@ const ProjectCard = forwardRef(function ProjectCard({ project }, ref) {
         {project.image ? (
           <img src={project.image} alt={project.title} loading="lazy" className={styles.coverImg} />
         ) : (
-          <ProjectCover seed={project.id} category={project.category} className={styles.coverImg} />
+          <ProjectCover seed={project.id} category={categories[0]} className={styles.coverImg} />
         )}
         <div className={styles.badges}>
-          <span className={styles.badge}>{t(`categories.${project.category}`)}</span>
+          {categories.map((c) => (
+            <span key={c} className={styles.badge}>
+              {t(`categories.${c}`)}
+            </span>
+          ))}
           {project.featured && <span className={`${styles.badge} ${styles.badgeAccent}`}>★ {t('projects.featured')}</span>}
         </div>
         {inProgress && (

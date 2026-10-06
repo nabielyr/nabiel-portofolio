@@ -91,7 +91,9 @@
   position: absolute;
   top: 0.9rem;
   left: 0.9rem;
+  right: 0.9rem;
   display: flex;
+  flex-wrap: wrap;
   gap: 0.4rem;
 }
 
@@ -109,6 +111,14 @@
 
 .badgeAccent {
   color: var(--accent);
+}
+
+/* Screenshots and charts can be bright, so badges on them get a solid backing */
+.coverPhoto .badge {
+  background: color-mix(in srgb, var(--navy-950) 88%, transparent);
+}
+.coverPhoto .badge:not(.badgeAccent) {
+  color: #e8ecf7;
 }
 
 .status {

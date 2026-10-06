@@ -6,7 +6,9 @@
  *  Fields:
  *  - id          unique slug (no spaces)
  *  - title       project name
- *  - category    'ai-ml' | 'data-science' | 'web-dev' | 'fun'
+ *  - category    'ai-ml' | 'data-science' | 'web-dev' | 'fun', or an array
+ *                of them when a project fits more than one (the first one
+ *                picks the generated cover art)
  *  - description { en: '...', id: '...' }
  *  - tech        array of technologies used
  *  - image       optional, e.g. '/projects/my-project.webp' (put the file in public/projects/)
@@ -17,8 +19,7 @@
  *  - year        number
  *  - status      optional: 'in-progress' shows a "Coming soon" badge
  *
- *  Newest / most important projects first. Each category keeps one
- *  'in-progress' card as a teaser for what's coming next.
+ *  Newest / most important projects first.
  */
 export const projects = [
   {
@@ -67,70 +68,39 @@ export const projects = [
     year: 2026,
   },
   {
-    id: 'placeholder-fun-1',
-    title: 'Untitled Fun Project',
-    category: 'fun',
+    id: 'hantavirus-sentiment',
+    title: 'Hantavirus Sentiment Analysis',
+    category: ['data-science', 'ai-ml'],
     description: {
-      en: 'When an interesting idea pops into my head, I build it. This one is cooking.',
-      id: 'Kalau ada ide menarik muncul, pasti saya buat. Yang ini sedang dimasak.',
+      en: 'How did Indonesians react to hantavirus news on YouTube? I pulled 779 comments with the YouTube Data API, cleaned up the slang, and classified them with IndoBERT, which I also fine-tuned on the data. Almost 74% came out negative, many of them political jabs about "tikus".',
+      id: 'Bagaimana reaksi warganet Indonesia terhadap berita hantavirus di YouTube? Saya mengambil 779 komentar lewat YouTube Data API, menormalisasi kata gaul, lalu mengklasifikasikannya dengan IndoBERT yang juga saya fine-tune. Hampir 74% komentar bernada negatif, banyak di antaranya sindiran politik soal "tikus".',
     },
-    tech: ['JavaScript', 'Canvas'],
-    image: '',
-    github: 'https://github.com/nabielyr',
+    tech: ['Python', 'IndoBERT', 'Hugging Face', 'YouTube API'],
+    image: '/projects/indobert-hantavirus.webp',
+    github: 'https://github.com/nabielyr/IndoBERT-for-Hantavirus-Sentiment-Analysis',
     demo: '',
-    featured: false,
+    featured: true,
     year: 2026,
-    status: 'in-progress',
   },
   {
-    id: 'placeholder-web-1',
-    title: 'Untitled Web Project',
-    category: 'web-dev',
-    description: {
-      en: 'A web application currently being designed and built. Stay tuned.',
-      id: 'Aplikasi web yang sedang dirancang dan dibangun. Nantikan ya.',
-    },
-    tech: ['PHP', 'MySQL', 'HTML5'],
-    image: '',
-    github: 'https://github.com/nabielyr',
-    demo: '',
-    featured: false,
-    year: 2026,
-    status: 'in-progress',
-  },
-  {
-    id: 'placeholder-ai-1',
-    title: 'Untitled AI/ML Project',
-    category: 'ai-ml',
-    description: {
-      en: 'Something intelligent is being trained here. A machine learning project is on its way.',
-      id: 'Sesuatu yang cerdas sedang dilatih di sini. Proyek machine learning segera hadir.',
-    },
-    tech: ['Python', 'PyTorch', 'scikit-learn'],
-    image: '',
-    github: 'https://github.com/nabielyr',
-    demo: '',
-    featured: false,
-    year: 2026,
-    status: 'in-progress',
-  },
-  {
-    id: 'placeholder-ds-1',
-    title: 'Untitled Data Science Project',
+    id: 'tech-layoffs',
+    title: 'Tech Layoffs Trend Analysis',
     category: 'data-science',
     description: {
-      en: 'Raw data in, insights out. Exploratory analysis and visualization coming soon.',
-      id: 'Data mentah masuk, insight keluar. Analisis eksploratif dan visualisasi segera hadir.',
+      en: 'A look at 2,412 tech layoff events from 2020 to 2025: which years, companies, industries and countries were hit hardest. Layoffs grew every year after 2021, and the worst single month was January 2023 with more than 66,000 people let go.',
+      id: 'Analisis 2.412 kejadian PHK di industri teknologi dari 2020 sampai 2025: tahun, perusahaan, industri, dan negara mana yang paling terdampak. Jumlah PHK naik setiap tahun sejak 2021, dan bulan terburuknya adalah Januari 2023 dengan lebih dari 66.000 orang terkena PHK.',
     },
-    tech: ['Python', 'Pandas', 'Kaggle'],
-    image: '',
-    github: 'https://github.com/nabielyr',
+    tech: ['Python', 'Pandas', 'Matplotlib', 'Seaborn'],
+    image: '/projects/tech-layoffs.webp',
+    github: 'https://github.com/nabielyr/Tech-Layoffs-Trend-Analysis',
     demo: '',
-    featured: false,
+    featured: true,
     year: 2026,
-    status: 'in-progress',
   },
 ]
+
+/** All categories a project belongs to (`category` may be a string or an array). */
+export const categoriesOf = (project) => [].concat(project.category)
 
 /** Filter tabs. `id: 'all'` must stay first. */
 export const projectCategories = [

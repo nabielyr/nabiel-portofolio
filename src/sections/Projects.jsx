@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { AnimatePresence, LayoutGroup, motion } from 'framer-motion'
 import { FiGithub } from 'react-icons/fi'
 import { useLanguage } from '../context/contexts'
-import { projects, projectCategories } from '../data/projects'
+import { projects, projectCategories, categoriesOf } from '../data/projects'
 import { profile } from '../data/profile'
 import SectionHeading from '../components/SectionHeading'
 import ProjectCard from '../components/ProjectCard'
@@ -15,7 +15,7 @@ export default function Projects() {
 
   const filtered = activeCategory === 'all'
     ? projects
-    : projects.filter((p) => p.category === activeCategory)
+    : projects.filter((p) => categoriesOf(p).includes(activeCategory))
 
   return (
     <section id="projects" className="section">
