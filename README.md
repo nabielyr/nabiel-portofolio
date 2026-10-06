@@ -14,7 +14,7 @@ Hi, I'm Nabiel, an Information Systems student at Brawijaya University in Malang
 - **"Training" intro.** The site opens with a counter going from 0 to 100 like a model training run, then the curtain lifts.
 - **About, Education and Experience.** My background, the lab and organizations I'm part of, and a timeline styled like a BPMN process (a nod to my Information Systems classes).
 - **Skills.** A bento grid of the tools I use, plus a scrolling ticker that leans with your scroll speed.
-- **Projects.** Filterable by category. Each category keeps one "coming soon" card for whatever I'm working on next.
+- **Projects.** The things I've built, from a typing game to NLP and data analysis, filterable by category.
 - **Contact.** Copy my email in one click, with my local time (WIB) shown next to it.
 
 It's fully bilingual (English and Bahasa Indonesia) and has both a dark and a light theme.
@@ -69,7 +69,7 @@ All the content lives in plain data files, so updating the site rarely means tou
 
 A few notes:
 
-- **Projects.** Pick a category (`ai-ml`, `data-science`, `web-dev` or `fun`) and add a `{ en, id }` description. Project screenshots go in `public/projects/` (WebP works best). If `image` is left empty, a generated cover matching the category is drawn instead.
+- **Projects.** Pick a category (`ai-ml`, `data-science`, `web-dev` or `fun`), or an array of them if a project fits more than one, and add a `{ en, id }` description. Project screenshots go in `public/projects/` (WebP works best). If `image` is left empty, a generated cover matching the category is drawn instead.
 - **CV.** Put the PDF in `public/cv/` and set `cv` in `profile.js` to its path, e.g. `'/cv/CV_Muhammad_Nabiel_Yandra.pdf'`. The download button shows up on its own.
 - **Text.** Anything that appears on the page should be added to both `en.js` and `id.js`.
 
