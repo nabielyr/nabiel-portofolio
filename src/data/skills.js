@@ -1,8 +1,8 @@
 import {
   SiPytorch, SiTensorflow, SiScikitlearn, SiKaggle, SiHuggingface, SiMediapipe, SiOpencv,
   SiPandas, SiNumpy, SiJupyter, SiGooglecolab,
-  SiPython, SiPhp, SiHtml5, SiMysql, SiFastapi, SiRedis,
-  SiDocker, SiGit, SiGithub, SiGitlab,
+  SiPython, SiPhp, SiHtml5, SiMysql, SiFastapi, SiRedis, SiSqlite,
+  SiDocker, SiGit, SiGithub, SiGitlab, SiPytest,
   SiReact, SiVite, SiThreedotjs, SiFramer, SiJavascript, SiCss, SiVercel,
 } from 'react-icons/si'
 import { FaJava } from 'react-icons/fa6'
@@ -55,6 +55,7 @@ export const skillGroups = [
       { name: 'FastAPI', icon: SiFastapi, color: '#009688' },
       { name: 'MySQL', icon: SiMysql, color: '#4479A1' },
       { name: 'Redis', icon: SiRedis, color: '#FF4438' },
+      { name: 'SQLite', icon: SiSqlite, color: '#0F80CC' },
     ],
   },
   {
@@ -98,6 +99,7 @@ export const skillGroups = [
       { name: 'Vercel', icon: SiVercel, color: '#FFFFFF' },
       { name: 'Docker', icon: SiDocker, color: '#2496ED' },
       { name: 'GitLab', icon: SiGitlab, color: '#FC6D26' },
+      { name: 'pytest', icon: SiPytest, color: '#0A9EDC' },
     ],
   },
   {
@@ -122,6 +124,6 @@ export const marqueeItems = [
   'Python', 'PyTorch', 'TensorFlow', 'scikit-learn', 'Hugging Face', 'MediaPipe', 'OpenCV',
   'Pandas', 'NumPy', 'Matplotlib', 'Seaborn', 'Jupyter', 'Kaggle',
   'React', 'Vite', 'Three.js', 'Framer Motion', 'JavaScript',
-  'Java', 'PHP', 'HTML5', 'CSS3', 'FastAPI', 'MySQL', 'Redis',
-  'Docker', 'Git', 'GitHub', 'GitLab', 'Vercel', 'BPMN',
+  'Java', 'PHP', 'HTML5', 'CSS3', 'FastAPI', 'MySQL', 'Redis', 'SQLite',
+  'Docker', 'Git', 'GitHub', 'GitLab', 'Vercel', 'pytest', 'BPMN',
 ]
