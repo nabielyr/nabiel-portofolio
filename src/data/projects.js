@@ -97,6 +97,22 @@ export const projects = [
     featured: true,
     year: 2026,
   },
+  {
+    id: 'what-gets-starred',
+    title: 'What Gets Starred',
+    category: 'data-science',
+    description: {
+      en: "What makes a GitHub repo popular? I'm building a resumable, rate-limit aware pipeline that samples about 4,000 repos through the GitHub REST API, to see how language, README quality, commit activity, licence and topics relate to stars. Data collection first, then the analysis and a Streamlit dashboard.",
+      id: 'Apa yang membuat repo GitHub populer? Saya sedang membangun pipeline yang bisa dilanjutkan kapan saja dan memperhitungkan rate limit, untuk mengambil sampel sekitar 4.000 repo lewat GitHub REST API dan melihat hubungan bahasa, kualitas README, aktivitas commit, lisensi, dan topik dengan jumlah bintang. Pengumpulan data dulu, lalu analisis dan dashboard Streamlit.',
+    },
+    tech: ['Python', 'GitHub API', 'SQLite', 'pytest'],
+    image: '',
+    github: 'https://github.com/nabielyr/what-gets-starred',
+    demo: '',
+    featured: false,
+    year: 2026,
+    status: 'in-progress',
+  },
 ]
 
 /** All categories a project belongs to (`category` may be a string or an array). */
