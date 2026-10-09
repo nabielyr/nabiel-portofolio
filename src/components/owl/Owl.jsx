@@ -1,36 +1,127 @@
-import { useImperativeHandle, useMemo, useRef } from 'react'
+import { useEffect, useImperativeHandle, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
 /*
- * A chubby navy owl with an orange knitted scarf, built from simple shapes.
+ * Hoo, a chubby navy owl in a knitted orange scarf, built from simple shapes.
  *
  * Behaviour, all done by moving groups (no per-frame geometry updates):
  * - the head turns toward the cursor, like a real owl, and the pupils follow
  * - it breathes, blinks at random and looks around when the cursor is idle
- * - click: a little hop with a wing flap (the parent shows a "hoo!" bubble)
+ * - click: a little hop, a wing flap and a happy squint (^ ^)
  * - double click: a full 360° head turn
  * - pose="perch": waves a wing while hovered
  */
 
-const C = {
+const COLORS = {
   body: '#1f3260',
-  face: '#2b4373',
+  bodyLight: '#2a4170',
+  mask: '#33507f',
+  ridge: '#182850',
+  wingMid: '#1a2b53',
+  wingTip: '#142243',
   belly: '#efe5d2',
-  feather: '#c9b48f',
+  scallop: '#d6c3a0',
   eye: '#fbf8f1',
+  iris: '#f0962e',
   pupil: '#0b1427',
   orange: '#e8641b',
-  stripe: '#f4efe6',
+  cream: '#f4efe6',
 }
 
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v))
 const damp = (current, target, lambda, dt) => current + (target - current) * (1 - Math.exp(-lambda * dt))
 const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
 
-function Clay({ color, ...rest }) {
-  // Matte, slightly soft plastic: the "vinyl toy" look
-  return <meshStandardMaterial color={color} roughness={0.82} metalness={0} {...rest} />
+/** Knitted look for the scarf: rib lines plus two cream bands, drawn once. */
+function makeKnitTexture(rotate = false) {
+  const w = 256
+  const h = 64
+  const canvas = document.createElement('canvas')
+  canvas.width = w
+  canvas.height = h
+  const ctx = canvas.getContext('2d')
+  ctx.fillStyle = COLORS.orange
+  ctx.fillRect(0, 0, w, h)
+  // cream bands across the scarf
+  ctx.fillStyle = COLORS.cream
+  for (const x of [0.36, 0.44]) ctx.fillRect(x * w, 0, w * 0.035, h)
+  // knit ribs running along the scarf
+  for (let y = 0; y < h; y += 4) {
+    ctx.fillStyle = 'rgba(80, 25, 0, 0.16)'
+    ctx.fillRect(0, y, w, 1)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.08)'
+    ctx.fillRect(0, y + 2, w, 1)
+  }
+  const tex = new THREE.CanvasTexture(canvas)
+  tex.colorSpace = THREE.SRGBColorSpace
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping
+  if (rotate) {
+    tex.center.set(0.5, 0.5)
+    tex.rotation = Math.PI / 2
+  }
+  return tex
+}
+
+/** Soft round shadow from a tiny gradient texture: drawn once, costs nothing per frame */
+function makeShadowTexture() {
+  const size = 128
+  const canvas = document.createElement('canvas')
+  canvas.width = canvas.height = size
+  const ctx = canvas.getContext('2d')
+  const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2)
+  g.addColorStop(0, 'rgba(19, 33, 63, 0.5)')
+  g.addColorStop(0.45, 'rgba(19, 33, 63, 0.2)')
+  g.addColorStop(1, 'rgba(19, 33, 63, 0)')
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, size, size)
+  const tex = new THREE.CanvasTexture(canvas)
+  tex.colorSpace = THREE.SRGBColorSpace
+  return tex
+}
+
+/** Shared materials: one instance per surface keeps shader programs and draw state low. */
+function useMaterials() {
+  const mats = useMemo(() => {
+    // Plush / felt: matte with a soft sheen that catches the rim light
+    const plush = (color, sheen = '#5d77b3') =>
+      new THREE.MeshPhysicalMaterial({ color, roughness: 0.9, metalness: 0, sheen: 0.9, sheenRoughness: 0.6, sheenColor: sheen })
+    const matte = (color, roughness = 0.75) => new THREE.MeshStandardMaterial({ color, roughness, metalness: 0 })
+    const knitRing = makeKnitTexture(false)
+    const knitTail = makeKnitTexture(true)
+    knitRing.repeat.set(1, 1)
+    return {
+      body: plush(COLORS.body),
+      bodyLight: plush(COLORS.bodyLight),
+      mask: plush(COLORS.mask, '#8aa2d8'),
+      ridge: plush(COLORS.ridge),
+      wingMid: plush(COLORS.wingMid),
+      wingTip: plush(COLORS.wingTip),
+      belly: plush(COLORS.belly, '#ffffff'),
+      scallop: matte(COLORS.scallop, 0.85),
+      eye: matte(COLORS.eye, 0.35),
+      iris: matte(COLORS.iris, 0.4),
+      pupil: matte(COLORS.pupil, 0.25),
+      shine: new THREE.MeshBasicMaterial({ color: '#ffffff' }),
+      beak: matte(COLORS.orange, 0.55),
+      feet: matte(COLORS.orange, 0.6),
+      knitRing: new THREE.MeshStandardMaterial({ map: knitRing, bumpMap: knitRing, bumpScale: 1.4, roughness: 0.95 }),
+      knitTail: new THREE.MeshStandardMaterial({ map: knitTail, bumpMap: knitTail, bumpScale: 1.4, roughness: 0.95 }),
+      fringe: matte(COLORS.orange, 0.95),
+      shadow: new THREE.MeshBasicMaterial({ map: makeShadowTexture(), transparent: true, depthWrite: false }),
+    }
+  }, [])
+
+  useEffect(
+    () => () => {
+      Object.values(mats).forEach((m) => {
+        m.map?.dispose()
+        m.dispose()
+      })
+    },
+    [mats],
+  )
+  return mats
 }
 
 function useBodyProfile() {
@@ -52,48 +143,50 @@ function useBodyProfile() {
   }, [])
 }
 
-/** V-shaped feather marks laid onto the curved belly */
-function useFeathers() {
+/** Small U-shaped feather scallops laid onto the curved belly, staggered rows */
+function useScallops() {
   return useMemo(() => {
     const rows = [
-      { y: -0.02, xs: [-0.2, 0, 0.2] },
-      { y: -0.24, xs: [-0.3, -0.1, 0.1, 0.3] },
-      { y: -0.46, xs: [-0.2, 0, 0.2] },
+      { y: 0.06, xs: [-0.13, 0.13] },
+      { y: -0.1, xs: [-0.26, 0, 0.26] },
+      { y: -0.26, xs: [-0.13, 0.13] },
+      { y: -0.42, xs: [-0.26, 0, 0.26] },
+      { y: -0.58, xs: [-0.13, 0.13] },
     ]
-    const cx = 0, cy = -0.14, cz = 0.5, rx = 0.56, ry = 0.62, rz = 0.36
+    const cy = -0.16
+    const cz = 0.5
+    const rx = 0.54
+    const ry = 0.64
+    const rz = 0.36
     const out = []
     for (const row of rows) {
       for (const x of row.xs) {
-        const k = 1 - ((x - cx) / rx) ** 2 - ((row.y - cy) / ry) ** 2
-        if (k <= 0) continue
-        out.push([x, row.y, cz + rz * Math.sqrt(k) - 0.005])
+        const k = 1 - (x / rx) ** 2 - ((row.y - cy) / ry) ** 2
+        if (k <= 0.05) continue
+        out.push([x, row.y, cz + rz * Math.sqrt(k) - 0.004])
       }
     }
     return out
   }, [])
 }
 
-function Eye({ x, pupilRef, eyeRef }) {
+function Eye({ x, m, pupilRef, eyeRef }) {
   return (
-    <group position={[x, 1.0, 0.6]}>
-      {/* face disc behind the eye */}
-      <mesh position={[0, 0, -0.06]} rotation={[0, x * 0.7, 0]} scale={[0.34, 0.36, 0.13]}>
-        <sphereGeometry args={[1, 32, 24]} />
-        <Clay color={C.face} />
-      </mesh>
+    <group position={[x, 1.0, 0.62]} rotation={[0, x * 0.5, 0]}>
       <group ref={eyeRef}>
-        <mesh>
+        <mesh material={m.eye}>
           <sphereGeometry args={[0.19, 32, 24]} />
-          <Clay color={C.eye} roughness={0.45} />
         </mesh>
         <group ref={pupilRef}>
-          <mesh position={[0, 0, 0.12]}>
-            <sphereGeometry args={[0.095, 24, 16]} />
-            <Clay color={C.pupil} roughness={0.3} />
+          {/* amber iris, black pupil and a catch light */}
+          <mesh material={m.iris} position={[0, 0, 0.155]} scale={[0.13, 0.13, 0.05]}>
+            <sphereGeometry args={[1, 24, 16]} />
           </mesh>
-          <mesh position={[0.035, 0.04, 0.2]}>
-            <sphereGeometry args={[0.028, 12, 8]} />
-            <meshBasicMaterial color="#ffffff" />
+          <mesh material={m.pupil} position={[0, 0, 0.18]} scale={[0.075, 0.075, 0.035]}>
+            <sphereGeometry args={[1, 20, 14]} />
+          </mesh>
+          <mesh material={m.shine} position={[0.04, 0.045, 0.205]}>
+            <sphereGeometry args={[0.024, 10, 8]} />
           </mesh>
         </group>
       </group>
@@ -101,36 +194,33 @@ function Eye({ x, pupilRef, eyeRef }) {
   )
 }
 
-function Foot({ x }) {
+function Wing({ side, m, wingRef }) {
   return (
-    <group position={[x, -0.98, 0.34]}>
-      {[-0.4, 0, 0.4].map((a) => (
-        <mesh key={a} rotation={[Math.PI / 2, 0, a]} position={[Math.sin(a) * 0.06, 0, 0.06]}>
-          <capsuleGeometry args={[0.05, 0.11, 4, 10]} />
-          <Clay color={C.orange} />
-        </mesh>
-      ))}
+    <group ref={wingRef} position={[side * 0.74, 0.32, 0.02]}>
+      {/* layered feathers: base, middle and darker tips */}
+      <mesh material={m.bodyLight} position={[side * 0.04, -0.34, 0]} rotation={[0, 0, side * -0.1]} scale={[0.19, 0.46, 0.34]}>
+        <sphereGeometry args={[1, 28, 20]} />
+      </mesh>
+      <mesh material={m.wingMid} position={[side * 0.07, -0.5, -0.04]} rotation={[0, 0, side * -0.18]} scale={[0.15, 0.34, 0.28]}>
+        <sphereGeometry args={[1, 24, 16]} />
+      </mesh>
+      <mesh material={m.wingTip} position={[side * 0.1, -0.66, -0.08]} rotation={[0, 0, side * -0.28]} scale={[0.1, 0.2, 0.2]}>
+        <sphereGeometry args={[1, 20, 14]} />
+      </mesh>
     </group>
   )
 }
 
-/** Soft round shadow from a tiny gradient texture: drawn once, costs nothing per frame */
-function useShadowTexture() {
-  return useMemo(() => {
-    const size = 128
-    const canvas = document.createElement('canvas')
-    canvas.width = canvas.height = size
-    const ctx = canvas.getContext('2d')
-    const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2)
-    g.addColorStop(0, 'rgba(19, 33, 63, 0.55)')
-    g.addColorStop(0.45, 'rgba(19, 33, 63, 0.22)')
-    g.addColorStop(1, 'rgba(19, 33, 63, 0)')
-    ctx.fillStyle = g
-    ctx.fillRect(0, 0, size, size)
-    const tex = new THREE.CanvasTexture(canvas)
-    tex.colorSpace = THREE.SRGBColorSpace
-    return tex
-  }, [])
+function Foot({ x, m }) {
+  return (
+    <group position={[x, -0.98, 0.34]}>
+      {[-0.42, 0, 0.42].map((a) => (
+        <mesh key={a} material={m.feet} rotation={[Math.PI / 2, 0, a]} position={[Math.sin(a) * 0.06, 0, 0.06]}>
+          <capsuleGeometry args={[0.05, 0.11, 4, 10]} />
+        </mesh>
+      ))}
+    </group>
+  )
 }
 
 export default function Owl({ pose = 'hero', pointer, reduceMotion = false, ref }) {
@@ -144,11 +234,13 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, ref 
   const eyeR = useRef()
   const pupilL = useRef()
   const pupilR = useRef()
-
-  const profile = useBodyProfile()
-  const feathers = useFeathers()
-  const shadowTex = useShadowTexture()
+  const browL = useRef()
+  const browR = useRef()
   const shadow = useRef()
+
+  const m = useMaterials()
+  const profile = useBodyProfile()
+  const scallops = useScallops()
 
   // Mutable animation state, never React state
   const s = useRef({
@@ -159,6 +251,7 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, ref 
     hopV: 0,
     squash: 0,
     flap: 0,
+    happy: 0, // 0..1, the (^ ^) squint after a click
     spin: -1, // seconds into a head spin, -1 = not spinning
     blink: 0, // 0 open .. 1 closed
     nextBlink: 1.5,
@@ -170,6 +263,7 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, ref 
   useImperativeHandle(ref, () => ({
     hop() {
       const st = s.current
+      st.happy = 1
       if (st.hopY > 0.02) return
       st.hopV = 3.1
       st.flap = 1
@@ -203,10 +297,8 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, ref 
       tx = Math.sin(t * 0.35) * 0.55 + Math.sin(t * 0.9) * 0.1
       ty = Math.sin(t * 0.27 + 1) * 0.2
     }
-    const lookYaw = tx * 0.95
-    const lookPitch = ty * 0.4
-    st.yaw = damp(st.yaw, lookYaw, 6, dt)
-    st.pitch = damp(st.pitch, lookPitch, 6, dt)
+    st.yaw = damp(st.yaw, tx * 0.85, 6, dt)
+    st.pitch = damp(st.pitch, ty * 0.38, 6, dt)
 
     let spinExtra = 0
     if (st.spin >= 0) {
@@ -222,12 +314,12 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, ref 
       head.current.rotation.z = -st.yaw * 0.12 + (reduceMotion ? 0 : Math.sin(t * 0.8) * 0.03)
     }
     // pupils drift a bit further than the head turns
-    const px = clamp(tx * 0.045, -0.045, 0.045)
-    const py = clamp(-ty * 0.04, -0.04, 0.04)
+    const px = clamp(tx * 0.04, -0.04, 0.04)
+    const py = clamp(-ty * 0.035, -0.035, 0.035)
     if (pupilL.current) pupilL.current.position.set(px, py, 0)
     if (pupilR.current) pupilR.current.position.set(px, py, 0)
 
-    // ---- blink ----
+    // ---- blink & happy squint ----
     if (!reduceMotion) {
       st.nextBlink -= dt
       if (st.nextBlink <= 0 && st.blinkT < 0) {
@@ -242,9 +334,14 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, ref 
         if (k >= 1) st.blinkT = -1
       }
     }
-    const eyeScaleY = 1 - st.blink * 0.92
+    st.happy = Math.max(0, st.happy - dt * 0.9)
+    const happy = Math.min(1, st.happy * 2.5)
+    const eyeScaleY = Math.max(0.1, 1 - Math.max(st.blink * 0.92, happy * 0.82))
     if (eyeL.current) eyeL.current.scale.y = eyeScaleY
     if (eyeR.current) eyeR.current.scale.y = eyeScaleY
+    // brows lift a little when happy
+    if (browL.current) browL.current.position.y = 0.16 + happy * 0.05
+    if (browR.current) browR.current.position.y = 0.16 + happy * 0.05
 
     // ---- hop (simple gravity) ----
     if (st.hopV !== 0 || st.hopY > 0) {
@@ -279,13 +376,13 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, ref 
     const flapAngle = st.flap > 0.02 ? Math.abs(Math.sin(t * 22)) * st.flap * 0.9 : 0
     let waveR = 0
     if (pose === 'perch' && st.hover) waveR = 1.9 + Math.sin(t * 9) * 0.35
-    if (wingL.current) wingL.current.rotation.z = -(0.08 + flapAngle)
+    if (wingL.current) wingL.current.rotation.z = -(0.06 + flapAngle)
     if (wingR.current) {
-      const target = 0.08 + flapAngle + waveR
+      const target = 0.06 + flapAngle + waveR
       wingR.current.rotation.z = damp(wingR.current.rotation.z, target, 14, dt)
     }
 
-    // scarf tail swings a little
+    // scarf end swings a little
     if (tail.current) {
       tail.current.rotation.z = -0.22 + (reduceMotion ? 0 : Math.sin(t * 1.6) * 0.05) - st.yaw * 0.1 + st.hopV * 0.03
     }
@@ -293,99 +390,106 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, ref 
 
   return (
     <>
-    <mesh ref={shadow} position={[0, -1.06, 0.05]} rotation={[-Math.PI / 2, 0, 0]} scale={[2.6, 1.5, 1]}>
-      <planeGeometry args={[1, 1]} />
-      <meshBasicMaterial map={shadowTex} transparent depthWrite={false} />
-    </mesh>
-    <group ref={root} dispose={null}>
-      <group ref={bodyRef} position={[0, 0, 0]}>
-        {/* body */}
-        <mesh castShadow>
-          <latheGeometry args={[profile, 48]} />
-          <Clay color={C.body} />
-        </mesh>
+      <mesh ref={shadow} material={m.shadow} position={[0, -1.06, 0.05]} rotation={[-Math.PI / 2, 0, 0]} scale={[2.6, 1.5, 1]}>
+        <planeGeometry args={[1, 1]} />
+      </mesh>
 
-        {/* belly + feather marks */}
-        <mesh position={[0, -0.14, 0.5]} scale={[0.56, 0.62, 0.36]}>
-          <sphereGeometry args={[1, 40, 28]} />
-          <Clay color={C.belly} />
-        </mesh>
-        {feathers.map(([x, y, z]) => (
-          <mesh key={`${x}${y}`} position={[x, y, z]} rotation={[0, x * 0.9, Math.PI]}>
-            <torusGeometry args={[0.065, 0.014, 8, 16, Math.PI]} />
-            <Clay color={C.feather} />
+      <group ref={root} dispose={null}>
+        <group ref={bodyRef}>
+          {/* body */}
+          <mesh material={m.body}>
+            <latheGeometry args={[profile, 56]} />
           </mesh>
-        ))}
 
-        {/* wings, pivoting at the shoulder */}
-        <group ref={wingL} position={[-0.74, 0.32, 0.02]}>
-          <mesh position={[-0.04, -0.38, 0]} rotation={[0, 0, 0.1]} scale={[0.19, 0.5, 0.34]}>
-            <sphereGeometry args={[1, 28, 20]} />
-            <Clay color={C.face} />
+          {/* belly with feather scallops */}
+          <mesh material={m.belly} position={[0, -0.16, 0.5]} scale={[0.54, 0.64, 0.36]}>
+            <sphereGeometry args={[1, 44, 32]} />
           </mesh>
-        </group>
-        <group ref={wingR} position={[0.74, 0.32, 0.02]}>
-          <mesh position={[0.04, -0.38, 0]} rotation={[0, 0, -0.1]} scale={[0.19, 0.5, 0.34]}>
-            <sphereGeometry args={[1, 28, 20]} />
-            <Clay color={C.face} />
-          </mesh>
-        </group>
-
-        <Foot x={-0.3} />
-        <Foot x={0.3} />
-
-        {/* knitted scarf */}
-        <mesh position={[0, 0.5, 0.02]} rotation={[Math.PI / 2 - 0.12, 0, 0]} scale={[1, 0.94, 1]}>
-          <torusGeometry args={[0.6, 0.095, 16, 56]} />
-          <Clay color={C.orange} />
-        </mesh>
-        {/* the knot and the hanging end, with two knitted stripes */}
-        <mesh position={[0.26, 0.47, 0.56]} scale={[0.13, 0.11, 0.1]}>
-          <sphereGeometry args={[1, 16, 12]} />
-          <Clay color={C.orange} />
-        </mesh>
-        <group ref={tail} position={[0.3, 0.44, 0.6]} rotation={[0.25, 0, -0.22]}>
-          <mesh position={[0, -0.36, 0]}>
-            <boxGeometry args={[0.22, 0.7, 0.07]} />
-            <Clay color={C.orange} />
-          </mesh>
-          {[-0.5, -0.6].map((y) => (
-            <mesh key={y} position={[0, y, 0.037]}>
-              <boxGeometry args={[0.225, 0.04, 0.008]} />
-              <Clay color={C.stripe} />
+          {scallops.map(([x, y, z]) => (
+            <mesh key={`${x}${y}`} material={m.scallop} position={[x, y, z]} rotation={[0, x * 1.1, Math.PI]}>
+              <torusGeometry args={[0.055, 0.011, 8, 18, Math.PI]} />
             </mesh>
           ))}
-          {[-0.075, -0.025, 0.025, 0.075].map((x) => (
-            <mesh key={x} position={[x, -0.76, 0]}>
-              <cylinderGeometry args={[0.014, 0.014, 0.1, 6]} />
-              <Clay color={C.orange} />
+
+          <Wing side={-1} m={m} wingRef={wingL} />
+          <Wing side={1} m={m} wingRef={wingR} />
+
+          <Foot x={-0.3} m={m} />
+          <Foot x={0.3} m={m} />
+
+          {/* knitted scarf: ring, knot and a hanging end with fringe */}
+          <mesh material={m.knitRing} position={[0, 0.5, 0.02]} rotation={[Math.PI / 2 - 0.12, 0, 0]} scale={[1, 0.94, 1]}>
+            <torusGeometry args={[0.6, 0.1, 20, 64]} />
+          </mesh>
+          <mesh material={m.knitRing} position={[0.27, 0.46, 0.57]} scale={[0.14, 0.12, 0.11]}>
+            <sphereGeometry args={[1, 20, 16]} />
+          </mesh>
+          <group ref={tail} position={[0.3, 0.42, 0.6]} rotation={[0.25, 0, -0.22]}>
+            <mesh material={m.knitTail} position={[0, -0.36, 0]}>
+              <boxGeometry args={[0.22, 0.7, 0.07]} />
+            </mesh>
+            {[-0.075, -0.025, 0.025, 0.075].map((x) => (
+              <mesh key={x} material={m.fringe} position={[x, -0.77, 0]}>
+                <cylinderGeometry args={[0.014, 0.01, 0.11, 6]} />
+              </mesh>
+            ))}
+          </group>
+        </group>
+
+        {/* head turns on its own, like an owl's */}
+        <group ref={head} position={[0, 0.2, 0]}>
+          <mesh material={m.body} position={[0, 0.8, 0]} scale={[1.04, 0.86, 0.94]}>
+            <sphereGeometry args={[0.74, 56, 40]} />
+          </mesh>
+
+          {/* heart-shaped facial mask: two soft discs that meet over the beak */}
+          {[-1, 1].map((side) => (
+            <mesh
+              key={side}
+              material={m.mask}
+              position={[side * 0.27, 1.0, 0.52]}
+              rotation={[0, side * 0.42, side * -0.25]}
+              scale={[0.33, 0.37, 0.14]}
+            >
+              <sphereGeometry args={[1, 32, 24]} />
             </mesh>
           ))}
+          {/* little ridge between the eyes */}
+          <mesh material={m.ridge} position={[0, 1.05, 0.66]} rotation={[0.25, 0, 0]} scale={[0.07, 0.17, 0.06]}>
+            <sphereGeometry args={[1, 16, 12]} />
+          </mesh>
+
+          <Eye x={-0.27} m={m} eyeRef={eyeL} pupilRef={pupilL} />
+          <Eye x={0.27} m={m} eyeRef={eyeR} pupilRef={pupilR} />
+
+          {/* feathery brows, they lift when it's happy */}
+          {[-1, 1].map((side) => (
+            <group key={side} position={[side * 0.27, 1.0, 0.68]}>
+              <mesh
+                ref={side < 0 ? browL : browR}
+                material={m.ridge}
+                position={[0, 0.16, 0]}
+                rotation={[0, 0, side * -0.22]}
+                scale={[0.14, 0.032, 0.05]}
+              >
+                <sphereGeometry args={[1, 16, 10]} />
+              </mesh>
+            </group>
+          ))}
+
+          {/* ear tufts */}
+          {[-1, 1].map((side) => (
+            <mesh key={side} material={m.body} position={[side * 0.47, 1.4, -0.04]} rotation={[0.05, 0, -side * 0.45]} scale={[1, 1, 0.65]}>
+              <coneGeometry args={[0.15, 0.44, 24]} />
+            </mesh>
+          ))}
+
+          {/* beak */}
+          <mesh material={m.beak} position={[0, 0.84, 0.73]} rotation={[Math.PI - 0.5, 0, 0]}>
+            <coneGeometry args={[0.07, 0.2, 18]} />
+          </mesh>
         </group>
       </group>
-
-      {/* head turns on its own, like an owl's */}
-      <group ref={head} position={[0, 0.2, 0]}>
-        <mesh castShadow position={[0, 0.8, 0]} scale={[1.04, 0.86, 0.94]}>
-          <sphereGeometry args={[0.74, 48, 36]} />
-          <Clay color={C.body} />
-        </mesh>
-        {/* ear tufts */}
-        {[-1, 1].map((side) => (
-          <mesh key={side} position={[side * 0.46, 1.36, -0.02]} rotation={[0.05, 0, -side * 0.42]}>
-            <coneGeometry args={[0.15, 0.42, 20]} />
-            <Clay color={C.body} />
-          </mesh>
-        ))}
-        <Eye x={-0.29} eyeRef={eyeL} pupilRef={pupilL} />
-        <Eye x={0.29} eyeRef={eyeR} pupilRef={pupilR} />
-        {/* beak */}
-        <mesh position={[0, 0.8, 0.72]} rotation={[Math.PI - 0.55, 0, 0]}>
-          <coneGeometry args={[0.075, 0.2, 16]} />
-          <Clay color={C.orange} />
-        </mesh>
-      </group>
-    </group>
     </>
   )
 }

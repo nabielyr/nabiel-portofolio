@@ -30,8 +30,15 @@ const id = {
     hoots: ['Huu!', 'Huu huu!', 'Halo!', 'Butuh anak magang?', 'Masih di sini.'],
     owlLabel: 'Burung hantu navy kecil. Coba klik.',
   },
-  marquee: {
-    welcome: 'Selamat datang di portofolio saya',
+  board: {
+    now: 'Sekarang',
+    nowText: 'Asisten praktikum @ IS Lab',
+    nowShort: 'Asprak @ IS Lab',
+    last: 'Terakhir dibuat',
+    building: 'Sedang dibuat',
+    time: 'Malang',
+    open: 'Terbuka untuk',
+    openText: 'Kesempatan baru',
   },
   about: {
     eyebrow: 'about.py',

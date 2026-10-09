@@ -30,8 +30,15 @@ const en = {
     hoots: ['Hoo!', 'Hoo hoo!', 'Hi there!', 'Need an intern?', 'Still here.'],
     owlLabel: 'A little navy owl. Click it.',
   },
-  marquee: {
-    welcome: 'Welcome to my portfolio',
+  board: {
+    now: 'Currently',
+    nowText: 'Teaching assistant @ IS Lab',
+    nowShort: 'TA @ IS Lab',
+    last: 'Last build',
+    building: 'Building',
+    time: 'Malang',
+    open: 'Open to',
+    openText: 'Opportunities',
   },
   about: {
     eyebrow: 'about.py',

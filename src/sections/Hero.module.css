@@ -7,26 +7,29 @@
 }
 
 .top {
-  position: relative;
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 1.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  align-items: center;
+  gap: clamp(1.5rem, 3vw, 3rem);
   width: 100%;
   max-width: var(--container);
   margin-inline: auto;
-  padding: clamp(1.25rem, 3vh, 2.5rem) var(--gutter) clamp(1.5rem, 4vh, 3rem);
+  padding: clamp(1.5rem, 5vh, 4rem) var(--gutter) clamp(1.25rem, 3vh, 2.5rem);
 }
 
-/* ---------- Giant name ---------- */
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.5rem, 3.5vh, 2.5rem);
+}
+
+/* ---------- Name ---------- */
 .name {
-  position: relative;
-  z-index: 1;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: var(--fs-giant);
-  line-height: 0.84;
+  font-size: var(--fs-name);
+  line-height: 0.86;
   letter-spacing: -0.005em;
   text-transform: uppercase;
   color: var(--ink);
@@ -46,10 +49,7 @@
   animation: rise 1s var(--ease-out) both;
 }
 
-.accent {
-  color: var(--accent);
-}
-
+.accent,
 .dot {
   color: var(--accent);
 }
@@ -60,44 +60,9 @@
   }
 }
 
-/* ---------- Owl ---------- */
-.owl {
-  position: absolute;
-  z-index: 2;
-  top: 0;
-  right: max(0px, calc((100% - var(--container)) / 2));
-  width: min(46vw, 640px);
-  height: 100%;
-}
-
-.bubble {
-  position: absolute;
-  top: 3%;
-  left: 68%;
-  padding: 0.45rem 0.8rem;
-  font-weight: 600;
-  font-size: var(--fs-sm);
-  white-space: nowrap;
-  background: var(--paper);
-  color: var(--ink);
-  border: 1px solid var(--ink);
-  border-radius: 14px 14px 14px 3px;
-  pointer-events: none;
-  animation: pop 0.35s var(--ease-out) both;
-}
-
-@keyframes pop {
-  from {
-    opacity: 0;
-    transform: translateY(6px) scale(0.9);
-  }
-}
-
 /* ---------- Intro ---------- */
 .intro {
-  position: relative;
-  z-index: 3;
-  max-width: 470px;
+  max-width: 34rem;
   animation: fade 0.9s 0.35s var(--ease-out) both;
 }
 
@@ -108,17 +73,14 @@
   }
 }
 
-.hello {
-  font-size: var(--fs-md);
-  font-weight: 600;
-  margin-bottom: 0.35rem;
+.lead {
+  font-size: var(--fs-lg);
+  line-height: 1.45;
+  margin-bottom: 1rem;
 }
 
-.lead {
-  font-size: var(--fs-md);
-  line-height: 1.5;
-  color: var(--ink);
-  margin-bottom: 0.9rem;
+.hello {
+  font-weight: 600;
 }
 
 .meta {
@@ -127,7 +89,7 @@
   gap: 0.4rem 1.25rem;
   font-size: var(--fs-sm);
   color: var(--ink-soft);
-  margin-bottom: 1.4rem;
+  margin-bottom: 1.5rem;
 }
 
 .status {
@@ -161,7 +123,7 @@
   font-weight: 600;
   border: 1px solid var(--ink);
   border-radius: var(--radius-pill);
-  transition: background-color var(--dur-fast), color var(--dur-fast);
+  transition: background-color var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast);
 }
 
 .btn:hover {
@@ -193,20 +155,71 @@
   color: var(--accent-ink);
 }
 
+/* ---------- Owl ---------- */
+.owl {
+  position: relative;
+  height: clamp(340px, 58vh, 560px);
+}
+
+.bubble {
+  position: absolute;
+  top: 4%;
+  left: 64%;
+  padding: 0.45rem 0.8rem;
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  border-radius: 14px 14px 14px 3px;
+  pointer-events: none;
+  animation: pop 0.35s var(--ease-out) both;
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.9);
+  }
+}
+
+/* ---------- Split-flap board ---------- */
+.boardWrap {
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding: 1.25rem var(--gutter) clamp(1.5rem, 4vh, 2.5rem);
+  border-top: 1px solid var(--rule);
+}
+
 /* ---------- Smaller screens ---------- */
 @media (max-width: 860px) {
+  /* name first, the owl standing next to it, intro below */
   .top {
-    justify-content: flex-start;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      'name owl'
+      'intro intro';
+    align-items: end;
+    row-gap: 1.75rem;
+  }
+  .text {
+    display: contents;
+  }
+  .name {
+    grid-area: name;
+  }
+  .intro {
+    grid-area: intro;
   }
   .owl {
-    position: relative;
-    right: auto;
-    width: 100%;
-    height: min(78vw, 360px);
-    margin-top: -1rem;
+    grid-area: owl;
+    height: min(52vw, 300px);
+    margin-bottom: -0.6rem;
   }
   .bubble {
-    left: 62%;
-    top: 0;
+    left: 50%;
+    top: -6%;
   }
 }
