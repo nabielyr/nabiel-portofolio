@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { ThemeContext } from './contexts'
 
-const THEME_COLORS = { dark: '#070d1f', light: '#f8f5ef' }
+const THEME_COLORS = { dark: '#0f1b33', light: '#f4efe6' }
 
 function getInitialTheme() {
   if (typeof document === 'undefined') return 'dark'

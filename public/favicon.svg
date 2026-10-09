@@ -1,16 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
-  <defs>
-    <linearGradient id="favicon-grad" x1="0" y1="64" x2="64" y2="0" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#FF7A1A" />
-      <stop offset="1" stop-color="#FFB547" />
-    </linearGradient>
-  </defs>
-  <rect width="64" height="64" rx="18" fill="#070D1F" />
-  <rect x="1" y="1" width="62" height="62" rx="17" stroke="rgba(143, 168, 255, 0.2)" stroke-width="2" />
-  <path d="M18 46V18L46 46V18" stroke="url(#favicon-grad)" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round" />
-  <circle cx="18" cy="18" r="4.5" fill="#E8ECF7" />
-  <circle cx="18" cy="46" r="4.5" fill="url(#favicon-grad)" />
-  <circle cx="32" cy="32" r="3.8" fill="#E8ECF7" />
-  <circle cx="46" cy="46" r="4.5" fill="#E8ECF7" />
-  <circle cx="46" cy="18" r="4.5" fill="url(#favicon-grad)" />
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="10" fill="#13213F"/>
+  <path d="M19 52V12h9l9 22V12h8v40h-9l-9-22v22z" fill="#F4EFE6"/>
+  <rect x="45" y="46" width="6" height="6" fill="#E8641B"/>
 </svg>

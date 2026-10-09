@@ -13,15 +13,15 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  scroll-padding-top: 90px;
+  scroll-padding-top: calc(var(--header-h) + 1rem);
 }
 
 body {
   font-family: var(--font-body);
   font-size: var(--fs-base);
-  line-height: 1.65;
-  color: var(--text);
-  background: var(--bg);
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--paper);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
@@ -57,34 +57,32 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-display);
-  font-weight: 700;
-  line-height: 1.05;
-  letter-spacing: -0.03em;
+  font-weight: 600;
+  line-height: 1.1;
 }
 
 ::selection {
-  background: var(--accent);
-  color: #fff;
+  background: var(--selection);
+  color: var(--ink);
 }
 
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
-  border-radius: 6px;
 }
 
-/* Custom cursor (fine pointers only): the precision dot is a native cursor
-   image, drawn by the OS with zero latency; Cursor.jsx only animates the
-   trailing reticle. Same look as the old DOM dot (accent core + soft glow). */
-:root {
-  --cursor-dot: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3CradialGradient id='g'%3E%3Cstop offset='.2' stop-color='%23ff7a1a' stop-opacity='.42'/%3E%3Cstop offset='.6' stop-color='%23ff7a1a' stop-opacity='.13'/%3E%3Cstop offset='1' stop-color='%23ff7a1a' stop-opacity='0'/%3E%3C/radialGradient%3E%3Ccircle cx='16' cy='16' r='12.5' fill='url(%23g)'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%23ff7a1a'/%3E%3C/svg%3E") 16 16, auto;
-  --cursor-dot-hover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3CradialGradient id='g'%3E%3Cstop offset='.25' stop-color='%23ff7a1a' stop-opacity='.5'/%3E%3Cstop offset='.62' stop-color='%23ff7a1a' stop-opacity='.16'/%3E%3Cstop offset='1' stop-color='%23ff7a1a' stop-opacity='0'/%3E%3C/radialGradient%3E%3Ccircle cx='16' cy='16' r='16' fill='url(%23g)'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23fff'/%3E%3C/svg%3E") 16 16, pointer;
-}
-
+/* ---------- Custom cursor (fine pointers only) ----------
+   The dot is a native cursor image, drawn by the OS with zero latency;
+   Cursor.jsx only animates the trailing ring. */
+:root,
 [data-theme='light'] {
-  --cursor-dot: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3CradialGradient id='g'%3E%3Cstop offset='.2' stop-color='%23ff7a1a' stop-opacity='.42'/%3E%3Cstop offset='.6' stop-color='%23ff7a1a' stop-opacity='.13'/%3E%3Cstop offset='1' stop-color='%23ff7a1a' stop-opacity='0'/%3E%3C/radialGradient%3E%3Ccircle cx='16' cy='16' r='12.5' fill='url(%23g)'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%23e8630a'/%3E%3C/svg%3E") 16 16, auto;
-  --cursor-dot-hover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3CradialGradient id='g'%3E%3Cstop offset='.25' stop-color='%23e8630a' stop-opacity='.5'/%3E%3Cstop offset='.62' stop-color='%23e8630a' stop-opacity='.16'/%3E%3Cstop offset='1' stop-color='%23e8630a' stop-opacity='0'/%3E%3C/radialGradient%3E%3Ccircle cx='16' cy='16' r='16' fill='url(%23g)'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23fff'/%3E%3C/svg%3E") 16 16, pointer;
+  --cursor-dot: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='4.45' fill='%23f4efe6'/%3E%3Ccircle cx='12' cy='12' r='3.2' fill='%2313213f'/%3E%3C/svg%3E") 12 12, auto;
+  --cursor-dot-hover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='5.85' fill='%23f4efe6'/%3E%3Ccircle cx='12' cy='12' r='4.6' fill='%23e8641b'/%3E%3C/svg%3E") 12 12, pointer;
+}
+
+[data-theme='dark'] {
+  --cursor-dot: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='4.45' fill='%230f1b33'/%3E%3Ccircle cx='12' cy='12' r='3.2' fill='%23f1ebdd'/%3E%3C/svg%3E") 12 12, auto;
+  --cursor-dot-hover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='5.85' fill='%230f1b33'/%3E%3Ccircle cx='12' cy='12' r='4.6' fill='%23f2803c'/%3E%3C/svg%3E") 12 12, pointer;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -104,18 +102,15 @@ h4 {
   width: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg);
+  background: var(--paper);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border-strong);
+  background: var(--rule-strong);
+  border: 3px solid var(--paper);
   border-radius: 10px;
-  border: 2px solid var(--bg);
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--accent);
 }
 
-/* ---------- Layout utilities ---------- */
+/* ---------- Layout ---------- */
 .container {
   width: 100%;
   max-width: var(--container);
@@ -128,15 +123,21 @@ h4 {
   padding-block: var(--section-pad);
 }
 
-.gradient-text {
-  background: var(--gradient-brand);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+/* Small uppercase label used for section kickers, table headers, meta */
+.label {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--ink-soft);
 }
 
-.mono {
-  font-family: var(--font-mono);
+.display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 0.86;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
 }
 
 .sr-only {
@@ -149,110 +150,6 @@ h4 {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
-}
-
-.glass {
-  background: var(--surface);
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-  border: 1px solid var(--border);
-}
-
-/* ---------- Ambient background ---------- */
-.ambient {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-/*
- * Soft glows are painted as radial gradients instead of `filter: blur(90px)`:
- * same look, but the drifting layers are pure compositing with no per-frame
- * blur pass (which also made every backdrop-filter card re-blur each frame).
- * Each box is grown by 2×180px (≈2σ of the old blur) to keep the same falloff;
- * --solid is where the old blurred edge started to fade.
- */
-.ambient__blob {
-  position: absolute;
-  width: calc(var(--size) + 360px);
-  height: calc(var(--size) + 360px);
-  background: radial-gradient(closest-side, var(--color) var(--solid), transparent);
-  will-change: transform;
-}
-
-.ambient__blob--1 {
-  --size: 46vmax;
-  --solid: 42%;
-  --color: var(--blob-1);
-  top: calc(-14vmax - 180px);
-  right: calc(-12vmax - 180px);
-  animation: drift-1 26s var(--ease-in-out) infinite alternate;
-}
-
-.ambient__blob--2 {
-  --size: 52vmax;
-  --solid: 47%;
-  --color: var(--blob-2);
-  bottom: calc(-20vmax - 180px);
-  left: calc(-16vmax - 180px);
-  animation: drift-2 32s var(--ease-in-out) infinite alternate;
-}
-
-.ambient__blob--3 {
-  --size: 30vmax;
-  --solid: 23%;
-  --color: var(--blob-3);
-  top: calc(40% - 180px);
-  left: calc(45% - 180px);
-  animation: drift-3 22s var(--ease-in-out) infinite alternate;
-}
-
-.ambient__grid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(var(--border) 1px, transparent 1px),
-    linear-gradient(90deg, var(--border) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 0%, transparent 75%);
-  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 0%, transparent 75%);
-  opacity: 0.5;
-}
-
-.ambient__noise {
-  position: absolute;
-  inset: 0;
-  opacity: var(--noise-opacity);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-@keyframes drift-1 {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-8vw, 10vh) scale(1.12); }
-  100% { transform: translate(-3vw, 22vh) scale(0.95); }
-}
-@keyframes drift-2 {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(10vw, -8vh) scale(1.08); }
-  100% { transform: translate(18vw, -18vh) scale(1.15); }
-}
-@keyframes drift-3 {
-  0% { transform: translate(0, 0) scale(0.9); }
-  100% { transform: translate(-20vw, -15vh) scale(1.2); }
-}
-
-/* ---------- Scroll progress ---------- */
-.scroll-progress {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--gradient-brand);
-  transform-origin: 0 50%;
-  z-index: 1000;
 }
 
 /* ---------- Theme transition (View Transitions API) ---------- */

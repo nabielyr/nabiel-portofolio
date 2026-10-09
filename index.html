@@ -1,37 +1,46 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="theme-color" content="#070D1F" />
+    <meta name="theme-color" content="#F4EFE6" />
 
-    <title>Muhammad Nabiel Yandra · Aspiring AI/ML Engineer</title>
+    <!-- Restore the saved theme before first paint so there's no flash -->
+    <script>
+      try {
+        var saved = localStorage.getItem('theme')
+        if (saved === 'dark' || saved === 'light') document.documentElement.dataset.theme = saved
+        if (saved === 'dark') document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0F1B33')
+      } catch (e) {}
+    </script>
+
+    <title>Muhammad Nabiel Yandra · Aspiring Machine Learning Engineer</title>
     <link rel="canonical" href="https://nabiel-portofolio-five.vercel.app/" />
     <meta
       name="description"
-      content="Portfolio of Muhammad Nabiel Yandra - Information Systems student at Universitas Brawijaya, aspiring AI/ML engineer, and data science enthusiast."
+      content="Muhammad Nabiel Yandra is an Information Systems student at Brawijaya University and an aspiring Machine Learning Engineer based in Malang, Indonesia. Open to internships and freelance work."
     />
-    <meta name="keywords" content="Muhammad Nabiel Yandra, Nabiel, Portfolio, AI, ML, Machine Learning, Data Science, Information Systems, Universitas Brawijaya" />
+    <meta name="keywords" content="Muhammad Nabiel Yandra, Nabiel, Portfolio, Machine Learning, Data Science, Information Systems, Brawijaya University, Malang" />
     <meta name="author" content="Muhammad Nabiel Yandra" />
 
     <!-- Open Graph / Social Sharing -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://nabiel-portofolio-five.vercel.app/" />
-    <meta property="og:title" content="Muhammad Nabiel Yandra · Aspiring AI/ML Engineer" />
-    <meta property="og:description" content="Turning curious ideas into intelligent systems - Information Systems, AI/ML, and Data Science." />
+    <meta property="og:title" content="Muhammad Nabiel Yandra · Aspiring Machine Learning Engineer" />
+    <meta property="og:description" content="Information Systems student at Brawijaya University, based in Malang, Indonesia. Projects in machine learning, data science and the web." />
     <meta property="og:image" content="/images/profile-800.webp" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="https://nabiel-portofolio-five.vercel.app/" />
-    <meta name="twitter:title" content="Muhammad Nabiel Yandra · Aspiring AI/ML Engineer" />
-    <meta name="twitter:description" content="Turning curious ideas into intelligent systems - Information Systems, AI/ML, and Data Science." />
+    <meta name="twitter:title" content="Muhammad Nabiel Yandra · Aspiring Machine Learning Engineer" />
+    <meta name="twitter:description" content="Information Systems student at Brawijaya University, based in Malang, Indonesia. Projects in machine learning, data science and the web." />
     <meta name="twitter:image" content="/images/profile-800.webp" />
 
-    <!-- Google Fonts: Bricolage Grotesque, Inter, JetBrains Mono -->
+    <!-- Google Fonts: Big Shoulders Display (display), Instrument Sans (text) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap"
       rel="stylesheet"
     />
   </head>

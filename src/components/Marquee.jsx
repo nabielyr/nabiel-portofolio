@@ -1,28 +1,28 @@
 import { motion, useScroll, useSpring, useTransform, useVelocity } from 'framer-motion'
 import styles from './Marquee.module.css'
 
-/** Infinite tech-stack ticker that skews with scroll velocity. */
-export default function Marquee({ items, reverse = false }) {
+/**
+ * A slow ticker between two hairlines, like a printed banner.
+ * It leans a few degrees with scroll speed - enough to feel physical,
+ * not enough to be a show.
+ */
+export default function Marquee({ items, separator = '✦', reverse = false, size = 'md' }) {
   const { scrollY } = useScroll()
   const velocity = useVelocity(scrollY)
   const smooth = useSpring(velocity, { damping: 50, stiffness: 300 })
-  const skew = useTransform(smooth, [-2000, 0, 2000], [8, 0, -8], { clamp: true })
+  const skew = useTransform(smooth, [-2500, 0, 2500], [3, 0, -3], { clamp: true })
 
-  // If the items array length is odd, double it so the alternating solid/outline pattern
-  // never clashes at the loop boundary (e.g. BPMN solid followed by Python solid).
-  const cycleItems = items.length % 2 !== 0 ? [...items, ...items] : items
-
-  const row = cycleItems.map((item, i) => (
+  const row = items.map((item, i) => (
     <span key={`${item}-${i}`} className={styles.item}>
-      <span className={i % 2 ? styles.outline : styles.solid}>{item}</span>
-      <span className={styles.star} aria-hidden="true">
-        ✦
+      <span>{item}</span>
+      <span className={styles.sep} aria-hidden="true">
+        {separator}
       </span>
     </span>
   ))
 
   return (
-    <div className={styles.marquee} aria-hidden="true">
+    <div className={`${styles.marquee} ${styles[size]}`} aria-hidden="true">
       <motion.div className={`${styles.track} ${reverse ? styles.reverse : ''}`} style={{ skewX: skew }}>
         <div className={styles.group}>{row}</div>
         <div className={styles.group}>{row}</div>

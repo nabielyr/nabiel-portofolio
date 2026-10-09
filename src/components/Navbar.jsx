@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'framer-motion'
-import { FiDownload, FiMenu, FiMoon, FiSun, FiX } from 'react-icons/fi'
 import { useLanguage, useTheme } from '../context/contexts'
 import { profile } from '../data/profile'
 import { scrollToTarget, startScroll, stopScroll } from '../lib/smoothScroll'
 import Logo from './Logo'
 import styles from './Navbar.module.css'
 
-const SECTIONS = ['about', 'education', 'experience', 'skills', 'projects', 'contact']
+const SECTIONS = ['projects', 'about', 'experience', 'contact']
 
 function useActiveSection() {
   const [active, setActive] = useState('')
@@ -33,7 +32,6 @@ export default function Navbar() {
   const { t, lang, setLang } = useLanguage()
   const { theme, toggleTheme } = useTheme()
   const active = useActiveSection()
-  const [scrolled, setScrolled] = useState(false)
   const [hidden, setHidden] = useState(false)
   const [open, setOpen] = useState(false)
   const { scrollY } = useScroll()
@@ -41,7 +39,6 @@ export default function Navbar() {
 
   useMotionValueEvent(scrollY, 'change', (y) => {
     const prev = scrollY.getPrevious() ?? 0
-    setScrolled(y > 40)
 
     // A scroll jump that comes with a page-height change is the browser keeping
     // the view anchored after a reflow (e.g. switching language), not the user
@@ -51,8 +48,9 @@ export default function Navbar() {
     pageHeight.current = height
     if (reflowed) return
 
-    setHidden(y > 500 && y > prev + 4 && !open)
-    if (y < prev - 4) setHidden(false)
+    // Only react to a clear direction; smooth-scroll easing ends in 1px steps
+    if (y < 120 || y < prev - 4) setHidden(false)
+    else if (y > prev + 4 && !open) setHidden(true)
   })
 
   const firstRun = useRef(true)
@@ -81,88 +79,66 @@ export default function Navbar() {
   return (
     <>
       <motion.header
-        className={`${styles.nav} ${scrolled ? styles.scrolled : ''}`}
-        animate={{ y: hidden ? '-120%' : '0%' }}
-        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        className={styles.nav}
+        animate={{ transform: hidden ? 'translateY(-100%)' : 'translateY(0%)' }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div className={styles.bar}>
-          <a href="#home" className={styles.brand} onClick={go('home')} aria-label="Home">
-            <Logo />
-            <span className={styles.brandText}>
-              nabiel<span className={styles.brandDot}>.</span>
-            </span>
-          </a>
+        <a href="#home" className={styles.brand} onClick={go('home')} aria-label={t('nav.home')}>
+          <Logo />
+        </a>
 
-          <nav className={styles.links} aria-label="Primary">
-            {SECTIONS.map((id) => (
-              <a
-                key={id}
-                id={`nav-${id}`}
-                href={`#${id}`}
-                onClick={go(id)}
-                className={`${styles.link} ${active === id ? styles.linkActive : ''}`}
-              >
-                {active === id && (
-                  <motion.span
-                    layoutId="nav-pill"
-                    className={styles.pill}
-                    transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-                  />
-                )}
-                <span className={styles.linkText}>{t(`nav.${id}`)}</span>
-              </a>
-            ))}
-          </nav>
-
-          <div className={styles.actions}>
-            <button
-              id="lang-toggle"
-              className={styles.lang}
-              onClick={() => setLang(lang === 'en' ? 'id' : 'en')}
-              aria-label={t('nav.lang')}
+        <nav className={styles.links} aria-label="Primary">
+          {SECTIONS.map((id) => (
+            <a
+              key={id}
+              id={`nav-${id}`}
+              href={`#${id}`}
+              onClick={go(id)}
+              className={`${styles.link} ${active === id ? styles.linkActive : ''}`}
             >
-              {['en', 'id'].map((l) => (
-                <span key={l} className={`${styles.langOpt} ${lang === l ? styles.langActive : ''}`}>
-                  {lang === l && (
-                    <motion.span layoutId="lang-thumb" className={styles.langThumb} transition={{ type: 'spring', stiffness: 420, damping: 32 }} />
-                  )}
-                  <span className={styles.langText}>{l.toUpperCase()}</span>
-                </span>
-              ))}
-            </button>
+              {t(`nav.${id}`)}
+            </a>
+          ))}
+        </nav>
 
-            <button id="theme-toggle" className={styles.iconBtn} onClick={toggleTheme} aria-label={t('nav.theme')}>
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.span
-                  key={theme}
-                  initial={{ rotate: -90, scale: 0, opacity: 0 }}
-                  animate={{ rotate: 0, scale: 1, opacity: 1 }}
-                  exit={{ rotate: 90, scale: 0, opacity: 0 }}
-                  transition={{ duration: 0.25 }}
-                  className={styles.iconWrap}
-                >
-                  {theme === 'dark' ? <FiSun /> : <FiMoon />}
-                </motion.span>
-              </AnimatePresence>
-            </button>
+        <div className={styles.actions}>
+          {profile.cv && (
+            <a id="nav-cv" className={styles.cv} href={profile.cv} download>
+              {t('nav.cv')}
+            </a>
+          )}
 
-            {profile.cv && (
-              <a id="nav-cv" className={styles.cv} href={profile.cv} download>
-                <FiDownload />
-                <span>{t('nav.cv')}</span>
-              </a>
-            )}
+          <button
+            id="lang-toggle"
+            className={styles.lang}
+            onClick={() => setLang(lang === 'en' ? 'id' : 'en')}
+            aria-label={t('nav.lang')}
+          >
+            <span className={lang === 'en' ? styles.langOn : ''}>EN</span>
+            <span aria-hidden="true">/</span>
+            <span className={lang === 'id' ? styles.langOn : ''}>ID</span>
+          </button>
 
-            <button
-              id="menu-toggle"
-              className={`${styles.iconBtn} ${styles.menuBtn}`}
-              onClick={() => setOpen((o) => !o)}
-              aria-label={open ? t('nav.close') : t('nav.menu')}
-              aria-expanded={open}
-            >
-              {open ? <FiX /> : <FiMenu />}
-            </button>
-          </div>
+          <button
+            id="theme-toggle"
+            className={styles.switch}
+            onClick={toggleTheme}
+            role="switch"
+            aria-checked={theme === 'dark'}
+            aria-label={t('nav.theme')}
+          >
+            <span className={styles.switchKnob} />
+          </button>
+
+          <button
+            id="menu-toggle"
+            className={styles.menuBtn}
+            onClick={() => setOpen((o) => !o)}
+            aria-label={open ? t('nav.close') : t('nav.menu')}
+            aria-expanded={open}
+          >
+            {open ? t('nav.close') : t('nav.menu')}
+          </button>
         </div>
       </motion.header>
 
@@ -170,10 +146,10 @@ export default function Navbar() {
         {open && (
           <motion.div
             className={styles.overlay}
-            initial={{ clipPath: 'circle(0% at calc(100% - 40px) 40px)' }}
-            animate={{ clipPath: 'circle(150% at calc(100% - 40px) 40px)' }}
-            exit={{ clipPath: 'circle(0% at calc(100% - 40px) 40px)' }}
-            transition={{ duration: 0.7, ease: [0.76, 0, 0.24, 1] }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
           >
             <nav className={styles.mobileLinks} aria-label="Mobile">
               {SECTIONS.map((id, i) => (
@@ -182,28 +158,28 @@ export default function Navbar() {
                   href={`#${id}`}
                   onClick={go(id)}
                   className={styles.mobileLink}
-                  initial={{ opacity: 0, y: 40 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 20 }}
-                  transition={{ delay: 0.2 + i * 0.06, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  initial={{ opacity: 0, transform: 'translateY(24px)' }}
+                  animate={{ opacity: 1, transform: 'translateY(0px)' }}
+                  transition={{ delay: 0.05 + i * 0.05, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <span className={styles.mobileIndex}>0{i + 1}</span>
                   {t(`nav.${id}`)}
                 </motion.a>
               ))}
             </nav>
-            <motion.div
-              className={styles.mobileFooter}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-            >
-              {profile.socials.map((s) => (
-                <a key={s.id} href={s.url} target={s.id === 'email' ? undefined : '_blank'} rel="noopener noreferrer">
-                  {s.label}
+            <div className={styles.mobileFooter}>
+              {profile.cv && (
+                <a href={profile.cv} download>
+                  {t('nav.cv')}
                 </a>
-              ))}
-            </motion.div>
+              )}
+              {profile.socials
+                .filter((s) => s.id === 'github' || s.id === 'linkedin')
+                .map((s) => (
+                  <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer">
+                    {s.label}
+                  </a>
+                ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
