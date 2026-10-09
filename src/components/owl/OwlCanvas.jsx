@@ -1,12 +1,14 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import Owl from './Owl'
+import Books from './Books'
 import styles from './OwlCanvas.module.css'
 
 const DPR = [1, 1.75]
 // Light-weight scene; the integrated GPU is plenty and avoids an adapter switch
 const GL = { antialias: true, alpha: true, powerPreference: 'default' }
-const CAMERA = { position: [0, 0.45, 7], fov: 30 }
+// The hero scene sits a little left of centre, closer to the name
+const CAMERA = { position: [0.5, 0.15, 7.4], fov: 30 }
 
 // Adaptive resolution: full DPR by default, 1x only if the GPU can't keep up
 const PERF_WINDOW = 2
@@ -66,7 +68,7 @@ function OwlCanvas({ pose = 'hero', onHoot, reduceMotion = false, className = ''
   }, [])
 
   const onCreated = useCallback(({ gl, scene, camera }) => {
-    camera.lookAt(0, 0.35, 0)
+    camera.lookAt(0.5, -0.05, 0)
     Promise.resolve(gl.compileAsync?.(scene, camera))
       .catch(() => {})
       .then(() => setWarm(true))
@@ -95,8 +97,8 @@ function OwlCanvas({ pose = 'hero', onHoot, reduceMotion = false, className = ''
         <directionalLight position={[-3, 5, 4]} intensity={2.1} color="#fff1dc" />
         {/* cool rim light keeps the navy silhouette readable on dark paper */}
         <directionalLight position={[3.5, 2.5, -3]} intensity={2.2} color="#d6e1ff" />
+        {pose === 'hero' && <Books top={-1.04} />}
         <group
-          position={[0, pose === 'perch' ? -0.1 : -0.05, 0]}
           onClick={(e) => {
             e.stopPropagation()
             owl.current?.hop()

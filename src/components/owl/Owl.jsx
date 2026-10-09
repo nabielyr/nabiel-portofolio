@@ -1,6 +1,7 @@
 import { useEffect, useImperativeHandle, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import { makeShadowTexture } from './textures'
 
 /*
  * Hoo, a chubby navy owl in a knitted orange scarf, built from simple shapes.
@@ -11,6 +12,7 @@ import * as THREE from 'three'
  * - click: a little hop, a wing flap and a happy squint (^ ^)
  * - double click: a full 360° head turn
  * - pose="perch": waves a wing while hovered
+ * - entrance: flies down from above the frame and lands, once
  */
 
 const COLORS = {
@@ -60,23 +62,6 @@ function makeKnitTexture(rotate = false) {
     tex.center.set(0.5, 0.5)
     tex.rotation = Math.PI / 2
   }
-  return tex
-}
-
-/** Soft round shadow from a tiny gradient texture: drawn once, costs nothing per frame */
-function makeShadowTexture() {
-  const size = 128
-  const canvas = document.createElement('canvas')
-  canvas.width = canvas.height = size
-  const ctx = canvas.getContext('2d')
-  const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2)
-  g.addColorStop(0, 'rgba(19, 33, 63, 0.5)')
-  g.addColorStop(0.45, 'rgba(19, 33, 63, 0.2)')
-  g.addColorStop(1, 'rgba(19, 33, 63, 0)')
-  ctx.fillStyle = g
-  ctx.fillRect(0, 0, size, size)
-  const tex = new THREE.CanvasTexture(canvas)
-  tex.colorSpace = THREE.SRGBColorSpace
   return tex
 }
 
@@ -223,7 +208,7 @@ function Foot({ x, m }) {
   )
 }
 
-export default function Owl({ pose = 'hero', pointer, reduceMotion = false, ref }) {
+export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entrance = true, ref }) {
   const root = useRef()
   const bodyRef = useRef()
   const head = useRef()
@@ -257,6 +242,7 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, ref 
     nextBlink: 1.5,
     blinkT: -1,
     hover: false,
+    intro: entrance && !reduceMotion ? 0 : -1, // seconds into the landing, -1 = done
   })
 
   // Let the parent trigger reactions (click / double click / hover)
@@ -297,6 +283,25 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, ref 
       tx = Math.sin(t * 0.35) * 0.55 + Math.sin(t * 0.9) * 0.1
       ty = Math.sin(t * 0.27 + 1) * 0.2
     }
+    // ---- entrance: fly down from above and land ----
+    let introY = 0
+    let introX = 0
+    let introFlap = 0
+    if (st.intro >= 0) {
+      st.intro += dt
+      const k = Math.min(1, st.intro / 1.9)
+      const ease = 1 - Math.pow(1 - k, 3) // slows down for the landing
+      introY = 4.4 * (1 - ease)
+      introX = Math.sin(st.intro * 3.4) * 0.16 * (1 - k)
+      introFlap = 1 - k * 0.55
+      tx *= k // looks down at the landing spot instead of the cursor
+      ty = ty * k + 0.55 * (1 - k)
+      if (k >= 1) {
+        st.intro = -1
+        st.squash = 1
+      }
+    }
+
     st.yaw = damp(st.yaw, tx * 0.85, 6, dt)
     st.pitch = damp(st.pitch, ty * 0.38, 6, dt)
 
@@ -358,12 +363,13 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, ref 
 
     const breathe = reduceMotion ? 0 : Math.sin(t * 2.1) * 0.012
     if (shadow.current) {
-      const k = 1 / (1 + st.hopY * 1.6)
-      shadow.current.scale.set(2.6 * k, 1.5 * k, 1)
-      shadow.current.material.opacity = 0.9 * k
+      const k = 1 / (1 + (st.hopY + introY) * 1.6)
+      shadow.current.scale.set(1.55 * k, 1.05 * k, 1)
+      shadow.current.material.opacity = 0.85 * k
     }
     if (root.current) {
-      root.current.position.y = st.hopY
+      root.current.position.x = introX
+      root.current.position.y = st.hopY + introY
       root.current.rotation.y = st.yaw * 0.18
     }
     if (bodyRef.current) {
@@ -373,7 +379,8 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, ref 
     }
 
     // ---- wings ----
-    const flapAngle = st.flap > 0.02 ? Math.abs(Math.sin(t * 22)) * st.flap * 0.9 : 0
+    const flapPower = Math.max(st.flap * 0.9, introFlap * 1.15)
+    const flapAngle = flapPower > 0.02 ? Math.abs(Math.sin(t * (introFlap > 0 ? 17 : 22))) * flapPower : 0
     let waveR = 0
     if (pose === 'perch' && st.hover) waveR = 1.9 + Math.sin(t * 9) * 0.35
     if (wingL.current) wingL.current.rotation.z = -(0.06 + flapAngle)
@@ -390,7 +397,7 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, ref 
 
   return (
     <>
-      <mesh ref={shadow} material={m.shadow} position={[0, -1.06, 0.05]} rotation={[-Math.PI / 2, 0, 0]} scale={[2.6, 1.5, 1]}>
+      <mesh ref={shadow} material={m.shadow} position={[0, -1.045, 0.02]} rotation={[-Math.PI / 2, 0, 0]} scale={[1.55, 1.05, 1]}>
         <planeGeometry args={[1, 1]} />
       </mesh>
 

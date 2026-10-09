@@ -1,11 +1,9 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import { useLanguage } from '../context/contexts'
-import { useMediaQuery } from '../hooks/useMediaQuery'
 import { profile } from '../data/profile'
-import { projects } from '../data/projects'
 import { scrollToTarget } from '../lib/smoothScroll'
-import SplitFlap from '../components/SplitFlap'
+import FlapTicker from '../components/FlapTicker'
 import styles from './Hero.module.css'
 
 const OwlCanvas = lazy(() => import('../components/owl/OwlCanvas'))
@@ -40,14 +38,10 @@ function useMalangTime() {
 
 const github = profile.socials.find((s) => s.id === 'github')
 const linkedin = profile.socials.find((s) => s.id === 'linkedin')
-// "Last build" is the newest finished project; "Building" only shows while something is in progress
-const lastBuild = projects.find((p) => p.status !== 'in-progress')
-const building = projects.find((p) => p.status === 'in-progress')
 
 export default function Hero() {
   const { t } = useLanguage()
   const reduceMotion = useReducedMotion()
-  const narrow = useMediaQuery('(max-width: 860px)')
   const mountOwl = useIdleMount()
   const time = useMalangTime()
   const [hoot, setHoot] = useState(null)
@@ -65,13 +59,11 @@ export default function Hero() {
     hootTimer.current = setTimeout(() => setHoot(null), 1800)
   }
 
-  const board = [
-    { id: 'now', label: t('board.now'), text: narrow ? t('board.nowShort') : t('board.nowText') },
-    lastBuild && { id: 'last', label: t('board.last'), text: lastBuild.title },
-    building && { id: 'building', label: t('board.building'), text: building.title },
-    { id: 'time', label: t('board.time'), text: `${time} WIB` },
-    { id: 'open', label: t('board.open'), text: t('board.openText') },
-  ].filter(Boolean)
+  const sep = '   /   '
+  const ticker =
+    `${t('ticker.now')}: ${t('ticker.nowText')}${sep}` +
+    `${t('ticker.time')} ${time} WIB${sep}` +
+    `${t('ticker.open')} ${t('ticker.openText')}${sep}`
 
   return (
     <section id="home" className={styles.hero}>
@@ -139,9 +131,7 @@ export default function Hero() {
         </div>
       </div>
 
-      <div className={styles.boardWrap}>
-        <SplitFlap rows={board} length={narrow ? 18 : 28} instant={reduceMotion} />
-      </div>
+      <FlapTicker text={ticker} instant={reduceMotion} />
     </section>
   )
 }

@@ -1,0 +1,31 @@
+.ticker {
+  --tile-w: 30px;
+  --tile-h: 44px;
+  --tile-gap: 3px;
+  --tile-bg: #13213f;
+  --tile-top: #1a2b4f;
+  --tile-ink: #f4efe6;
+  position: relative;
+  overflow: hidden;
+  padding-block: 10px;
+  border-block: 1px solid var(--rule-strong);
+}
+
+[data-theme='dark'] .ticker {
+  --tile-bg: #1b2c52;
+  --tile-top: #22365f;
+  --tile-ink: #f1ebdd;
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+}
+
+@media (max-width: 860px) {
+  .ticker {
+    --tile-w: 22px;
+    --tile-h: 34px;
+    --tile-gap: 2px;
+  }
+}
