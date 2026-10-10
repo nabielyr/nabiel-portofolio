@@ -93,6 +93,7 @@ const id = {
     emailLabel: 'Email',
     copy: 'Salin',
     copied: 'Tersalin',
+    gmail: 'Buka di Gmail',
     elsewhere: 'Di tempat lain',
     status: 'Terbuka untuk magang & freelance',
     localTime: 'Di Malang sekarang pukul',

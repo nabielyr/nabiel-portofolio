@@ -23,11 +23,48 @@
   color: var(--ink-soft);
 }
 
+/* a status dot for each: solid ink for finished, orange and gently
+   pulsing for the one still being built */
 .nowDot {
+  position: relative;
   width: 7px;
   height: 7px;
   border-radius: 50%;
+}
+
+.done {
+  background: var(--ink);
+}
+
+.live {
   background: var(--accent);
+}
+
+.live::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  animation: ping 2.2s var(--ease-out) infinite;
+}
+
+@keyframes ping {
+  from {
+    opacity: 0.8;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live::after {
+    animation: none;
+    opacity: 0;
+  }
 }
 
 .now a {

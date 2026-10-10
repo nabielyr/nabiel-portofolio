@@ -93,6 +93,7 @@ const en = {
     emailLabel: 'Email',
     copy: 'Copy',
     copied: 'Copied',
+    gmail: 'Open in Gmail',
     elsewhere: 'Elsewhere',
     status: 'Open to internships & freelance',
     localTime: 'In Malang it is',

@@ -43,7 +43,10 @@ export default function Projects() {
           <ul className={styles.now}>
             {lastBuild && (
               <li>
-                <span className={styles.nowLabel}>{t('projects.lastBuild')}</span>
+                <span className={styles.nowLabel}>
+                  <span className={`${styles.nowDot} ${styles.done}`} aria-hidden="true" />
+                  {t('projects.lastBuild')}
+                </span>
                 <a href={`#project-${lastBuild.id}`} onClick={jumpTo(lastBuild.id)}>
                   {lastBuild.title}
                 </a>
@@ -52,7 +55,7 @@ export default function Projects() {
             {building && (
               <li>
                 <span className={styles.nowLabel}>
-                  <span className={styles.nowDot} aria-hidden="true" />
+                  <span className={`${styles.nowDot} ${styles.live}`} aria-hidden="true" />
                   {t('projects.building')}
                 </span>
                 <a href={`#project-${building.id}`} onClick={jumpTo(building.id)}>

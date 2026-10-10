@@ -173,9 +173,20 @@ export default function Contact() {
               <a className={styles.email} href={`mailto:${profile.email}`}>
                 {profile.email}
               </a>
-              <button id="copy-email-btn" className={styles.copy} onClick={copyEmail} aria-live="polite">
-                {copied ? t('contact.copied') : t('contact.copy')}
-              </button>
+              <div className={styles.emailActions}>
+                <button id="copy-email-btn" className={styles.copy} onClick={copyEmail} aria-live="polite">
+                  {copied ? t('contact.copied') : t('contact.copy')}
+                </button>
+                <a
+                  id="gmail-btn"
+                  className={styles.copy}
+                  href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(profile.email)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t('contact.gmail')} ↗
+                </a>
+              </div>
             </div>
 
             {profile.cv && (

@@ -574,7 +574,9 @@ export default function Owl({
     st.eating = damp(st.eating, st.eatT >= 0 ? 1 : 0, 6, dt)
     let up = THREE.MathUtils.lerp(LID.upOpen, LID.upHappy, happy)
     up = THREE.MathUtils.lerp(up, LID.upKeen, st.keen)
-    const shut = Math.max(st.blink, sleep)
+    // the lids finish closing a little before `sleep` reaches 1 (it only
+    // creeps toward 1), so a fully asleep owl has fully shut eyes
+    const shut = Math.max(st.blink, smooth(0, 0.9, sleep))
     const upAngle = THREE.MathUtils.lerp(up, LID.shut, shut)
     const lowAngle = THREE.MathUtils.lerp(THREE.MathUtils.lerp(LID.lowOpen, LID.lowHappy, happy), LID.shut, shut)
     for (const lid of [upL.current, upR.current]) if (lid) lid.rotation.x = upAngle
