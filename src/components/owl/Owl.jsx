@@ -322,6 +322,9 @@ export default function Owl({
     wind: 0,
     eatT: -1, // seconds into eating, -1 = not eating
     mouth: 0,
+    breathPhase: 0,
+    breathRate: 2.1,
+    breathDepth: 0.006,
   })
 
   const setPhase = (phase) => {
@@ -497,11 +500,15 @@ export default function Owl({
     const awakeK = 1 - smooth(0.25, 0.85, sleep)
     tx *= awakeK
     ty = ty * awakeK + (0.75 + nod * 3 - yawn * 0.6) * (1 - awakeK)
-    const breathRate = asleep ? 1.25 : 2.1
-    const breath = reduceMotion ? 0 : Math.sin(t * breathRate)
+    // breathing: the phase is accumulated and the rate and depth ease toward
+    // their sleeping values, so falling asleep never jumps the breath mid-cycle
+    st.breathRate = damp(st.breathRate, asleep ? 1.25 : 2.1, 1.5, dt)
+    st.breathDepth = damp(st.breathDepth, asleep ? 0.012 : 0.006, 1.5, dt)
+    st.breathPhase += st.breathRate * dt
+    const breath = reduceMotion ? 0 : Math.sin(st.breathPhase)
 
     st.yaw = damp(st.yaw, tx * 0.85, flying ? 3 : asleep ? 1.5 : 6, dt)
-    st.pitch = damp(st.pitch, ty * 0.38 + (asleep ? breath * 0.02 : 0), asleep ? 2 : 6, dt)
+    st.pitch = damp(st.pitch, ty * 0.38 + breath * 0.02 * sleep, asleep ? 2 : 6, dt)
 
     let spinExtra = 0
     if (st.spin >= 0) {
@@ -621,7 +628,7 @@ export default function Owl({
     }
     if (bodyRef.current) {
       // breathing fills the whole body evenly (no stretching), deeper in sleep
-      const b = 1 + breath * (asleep ? 0.012 : 0.006)
+      const b = 1 + breath * st.breathDepth
       bodyRef.current.scale.setScalar(b)
       bodyRef.current.rotation.z = reduceMotion ? 0 : Math.sin(t * 0.7) * 0.025 * (1 - sleep * 0.6)
     }

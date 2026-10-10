@@ -1,10 +1,10 @@
-import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import { useLanguage } from '../context/contexts'
 import { profile } from '../data/profile'
 import styles from './Contact.module.css'
 
-const OwlCanvas = lazy(() => import('../components/owl/OwlCanvas'))
+import { loadedOwlCanvas, prepareOwl } from '../components/owl/loadOwl'
 
 const timeInMalang = () =>
   new Date().toLocaleTimeString('en-GB', { timeZone: profile.timezone, hour: '2-digit', minute: '2-digit', hour12: false })
@@ -97,6 +97,16 @@ export default function Contact() {
   const near = useSeen(sectionEl, '3000px')
   const idle = useIdleAfter(9000)
   const titleInView = useSeen(letterEl, '0px 0px -10% 0px')
+  const [OwlCanvas, setOwlCanvas] = useState(loadedOwlCanvas)
+  useEffect(() => {
+    if (!(near || idle) || OwlCanvas) return undefined
+    let alive = true
+    // a function in state must be wrapped, or React would call it
+    prepareOwl().then((C) => alive && C && setOwlCanvas(() => C))
+    return () => {
+      alive = false
+    }
+  }, [near, idle, OwlCanvas])
   const stage = useStage(sectionEl, letterEl)
 
   // Hoo lands on one letter with a flat top (set per language)
@@ -137,19 +147,17 @@ export default function Contact() {
         </div>
 
         {/* Hoo flies in from the right and lands on that letter; the section feeds it pointer events */}
-        {(near || idle) && stage && (
+        {OwlCanvas && stage && (
           <div className={styles.stage} style={{ left: stage.left, width: stage.width, height: stage.height }}>
-            <Suspense fallback={null}>
-              <OwlCanvas
-                pose="perch"
-                reduceMotion={reduceMotion}
-                eventSource={sectionEl}
-                anchor={letterEl}
-                ready={titleInView}
-                framing="stage"
-                unitPx={stage.unitPx}
-              />
-            </Suspense>
+            <OwlCanvas
+              pose="perch"
+              reduceMotion={reduceMotion}
+              eventSource={sectionEl}
+              anchor={letterEl}
+              ready={titleInView}
+              framing="stage"
+              unitPx={stage.unitPx}
+            />
           </div>
         )}
 

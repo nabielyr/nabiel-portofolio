@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import { useLanguage } from '../context/contexts'
@@ -6,18 +6,12 @@ import { profile } from '../data/profile'
 import { scrollToTarget } from '../lib/smoothScroll'
 import FlapTicker from '../components/FlapTicker'
 import TreatJar from '../components/TreatJar'
+import { prepareOwl } from '../components/owl/loadOwl'
 import styles from './Hero.module.css'
 
-// Start fetching the owl's code and painting its feathers (in a worker) right away
-const loadOwl = () => import('../components/owl/OwlCanvas')
-const OwlCanvas = lazy(loadOwl)
-let owlPrep = null
-const prepareOwl = () =>
-  (owlPrep ??= Promise.all([loadOwl(), import('../components/owl/plumage').then((m) => m.preparePlumage())]).catch(() => {}))
-
-// The name's rise is ease-out: by this point it has nearly settled, so the
-// owl's WebGL set-up can start without it being noticed
-const NAME_SETTLED_MS = 550
+// Start fetching the owl's code and painting its feathers (in a worker) as
+// soon as the page's script runs
+prepareOwl()
 
 /**
  * The name waits for its font, so it never swaps typeface halfway through
@@ -36,28 +30,6 @@ function useFontReady() {
       alive = false
     }
   }, [])
-  return ready
-}
-
-/**
- * Mount the 3D owl once the name has nearly settled (the WebGL set-up would
- * otherwise compete with its rise for the GPU). Its code and textures start
- * loading the moment the page does, so they're ready by then.
- */
-function useOwlMount(started) {
-  const [ready, setReady] = useState(false)
-  useEffect(() => {
-    prepareOwl()
-  }, [])
-  useEffect(() => {
-    if (!started) return undefined
-    let alive = true
-    const wait = new Promise((resolve) => setTimeout(resolve, NAME_SETTLED_MS))
-    Promise.all([prepareOwl(), wait]).then(() => alive && setReady(true))
-    return () => {
-      alive = false
-    }
-  }, [started])
   return ready
 }
 
@@ -81,7 +53,20 @@ export default function Hero() {
   const { t } = useLanguage()
   const reduceMotion = useReducedMotion()
   const fontReady = useFontReady()
-  const mountOwl = useOwlMount(fontReady)
+  // Mount the 3D owl as soon as its code and textures are in (they load with
+  // the page). The name has started rising by then; the owl's GPU set-up
+  // doesn't hold it up, since its textures are painted off the GPU and
+  // uploaded a few per frame (checked with a trace: no compositor stalls).
+  const [OwlCanvas, setOwlCanvas] = useState(null)
+  useEffect(() => {
+    if (!fontReady) return undefined
+    let alive = true
+    // a function in state must be wrapped, or React would call it
+    prepareOwl().then((C) => alive && C && setOwlCanvas(() => C))
+    return () => {
+      alive = false
+    }
+  }, [fontReady])
   const owlApi = useRef(null)
   const narrow = useMediaQuery('(max-width: 860px)')
   // the hero section drives the owl's pointer events, so its tall canvas never blocks links
@@ -112,19 +97,17 @@ export default function Hero() {
   ]
   const tickerLabel = ticker.map((i) => `${i.label} ${i.value}`).join(' · ')
 
-  const owl = mountOwl && heroEl && (narrow || owlSpot) && (
-    <Suspense fallback={null}>
-      <OwlCanvas
-        pose="hero"
-        onHoot={onHoot}
-        apiRef={owlApi}
-        reduceMotion={reduceMotion}
-        eventSource={heroEl}
-        anchor={narrow ? null : owlSpot}
-        framing={narrow ? 'fit' : 'stage'}
-        unitPx={142}
-      />
-    </Suspense>
+  const owl = OwlCanvas && heroEl && (narrow || owlSpot) && (
+    <OwlCanvas
+      pose="hero"
+      onHoot={onHoot}
+      apiRef={owlApi}
+      reduceMotion={reduceMotion}
+      eventSource={heroEl}
+      anchor={narrow ? null : owlSpot}
+      framing={narrow ? 'fit' : 'stage'}
+      unitPx={142}
+    />
   )
 
   return (
@@ -192,7 +175,7 @@ export default function Hero() {
       {!narrow && <div className={styles.owlStage}>{owl}</div>}
 
       {/* a jar of treats to feed Hoo, once he's here */}
-      {mountOwl && (
+      {OwlCanvas && (
         <TreatJar className={styles.treats} owlApi={owlApi} onFed={() => onHoot('nom')} label={t('hero.treat')} hint={t('hero.treatHint')} />
       )}
 
