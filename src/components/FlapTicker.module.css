@@ -1,20 +1,28 @@
+/* Colours for the canvas board, read once per theme change */
 .ticker {
-  --tile-w: 30px;
-  --tile-h: 44px;
-  --tile-gap: 3px;
-  --tile-bg: #13213f;
-  --tile-top: #1a2b4f;
+  --tile-w: 32px;
+  --tile-h: 46px;
+  --tile-gap: 5px;
+  --board-pad: 10px;
+  --board: #0c1529;
+  --tile-top-a: #2a3e68;
+  --tile-top-b: #1f3058;
+  --tile-bottom-a: #1a2a4e;
+  --tile-bottom-b: #142240;
   --tile-ink: #f4efe6;
+  --tile-accent: #f2803c;
+  --tile-pin: #4a5d86;
   position: relative;
   overflow: hidden;
-  padding-block: 10px;
-  border-block: 1px solid var(--rule-strong);
+  background: var(--board);
 }
 
 [data-theme='dark'] .ticker {
-  --tile-bg: #1b2c52;
-  --tile-top: #22365f;
-  --tile-ink: #f1ebdd;
+  --board: #070e1d;
+  --tile-top-a: #2c4170;
+  --tile-top-b: #22355f;
+  --tile-bottom-a: #1d2e55;
+  --tile-bottom-b: #172648;
 }
 
 .canvas {
@@ -24,8 +32,9 @@
 
 @media (max-width: 860px) {
   .ticker {
-    --tile-w: 22px;
+    --tile-w: 23px;
     --tile-h: 34px;
-    --tile-gap: 2px;
+    --tile-gap: 3px;
+    --board-pad: 7px;
   }
 }

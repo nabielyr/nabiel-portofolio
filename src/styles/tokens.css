@@ -16,7 +16,7 @@
   --fs-xl: clamp(1.6rem, 1.2rem + 1.6vw, 2.4rem);
   --fs-2xl: clamp(3rem, 1.6rem + 6vw, 7.5rem);
   --fs-giant: clamp(5.5rem, 1rem + 16.5vw, 19rem);
-  --fs-name: clamp(3.8rem, 0.8rem + 10.2vw, 11.5rem);
+  --fs-name: clamp(3.8rem, 0.8rem + 13.2vw, 14.5rem);
 
   --tracking-label: 0.14em;
 

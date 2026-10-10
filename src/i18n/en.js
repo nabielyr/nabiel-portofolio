@@ -85,6 +85,8 @@ const en = {
     titleAccent: 'work.',
     subtitle: 'A living collection of things I build. New projects are added as they ship.',
     comingSoon: 'In progress',
+    lastBuild: 'Last build',
+    building: 'Building',
     code: 'Code',
     demo: 'Live',
     view: 'View',

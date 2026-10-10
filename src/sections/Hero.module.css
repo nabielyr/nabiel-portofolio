@@ -1,4 +1,5 @@
 .hero {
+  --ticker-h: 66px;
   position: relative;
   min-height: 100svh;
   display: flex;
@@ -155,16 +156,24 @@
   color: var(--accent-ink);
 }
 
-/* ---------- Owl ---------- */
+/* ---------- Owl ----------
+   A tall stage from the very top of the page down to the ticker, so the owl
+   can fly in from the top edge and hop without being clipped. It sits above
+   the header but never takes the pointer (the hero section feeds it events). */
 .owl {
-  position: relative;
-  height: clamp(360px, 64vh, 620px);
+  position: absolute;
+  z-index: 950;
+  top: 0;
+  bottom: var(--ticker-h);
+  right: max(var(--gutter), calc((100% - var(--container)) / 2 + var(--gutter)));
+  width: min(44%, 600px);
+  pointer-events: none;
 }
 
 .bubble {
   position: absolute;
-  top: 4%;
-  left: 64%;
+  bottom: min(560px, 72%);
+  left: 62%;
   padding: 0.45rem 0.8rem;
   font-weight: 600;
   font-size: var(--fs-sm);
@@ -206,6 +215,12 @@
     grid-area: intro;
   }
   .owl {
+    position: relative;
+    z-index: auto;
+    top: auto;
+    bottom: auto;
+    right: auto;
+    width: auto;
     grid-area: owl;
     height: min(52vw, 300px);
     margin-bottom: -0.6rem;
@@ -213,5 +228,6 @@
   .bubble {
     left: 50%;
     top: -6%;
+    bottom: auto;
   }
 }

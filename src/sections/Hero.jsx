@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
+import { useMediaQuery } from '../hooks/useMediaQuery'
 import { useLanguage } from '../context/contexts'
 import { profile } from '../data/profile'
 import { scrollToTarget } from '../lib/smoothScroll'
@@ -43,6 +44,9 @@ export default function Hero() {
   const { t } = useLanguage()
   const reduceMotion = useReducedMotion()
   const mountOwl = useIdleMount()
+  const narrow = useMediaQuery('(max-width: 860px)')
+  // the hero section drives the owl's pointer events, so its tall canvas never blocks links
+  const [heroEl, setHeroEl] = useState(null)
   const time = useMalangTime()
   const [hoot, setHoot] = useState(null)
   const hootTimer = useRef(0)
@@ -59,14 +63,15 @@ export default function Hero() {
     hootTimer.current = setTimeout(() => setHoot(null), 1800)
   }
 
-  const sep = '   /   '
-  const ticker =
-    `${t('ticker.now')}: ${t('ticker.nowText')}${sep}` +
-    `${t('ticker.time')} ${time} WIB${sep}` +
-    `${t('ticker.open')} ${t('ticker.openText')}${sep}`
+  const ticker = [
+    { label: `${t('ticker.now')}:`, value: t('ticker.nowText') },
+    { label: t('ticker.time'), value: `${time} WIB` },
+    { label: t('ticker.open'), value: t('ticker.openText') },
+  ]
+  const tickerLabel = ticker.map((i) => `${i.label} ${i.value}`).join(' · ')
 
   return (
-    <section id="home" className={styles.hero}>
+    <section id="home" ref={setHeroEl} className={styles.hero}>
       <div className={styles.top}>
         <div className={styles.text}>
           <h1 className={styles.name} aria-label={profile.name}>
@@ -117,10 +122,17 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className={styles.owl} title={t('hero.owlLabel')}>
-          {mountOwl && (
+        <div className={styles.owl}>
+          {mountOwl && heroEl && (
             <Suspense fallback={null}>
-              <OwlCanvas pose="hero" onHoot={onHoot} reduceMotion={reduceMotion} />
+              <OwlCanvas
+                pose="hero"
+                onHoot={onHoot}
+                reduceMotion={reduceMotion}
+                eventSource={heroEl}
+                framing={narrow ? 'fit' : 'stage'}
+                unitPx={142}
+              />
             </Suspense>
           )}
           {hoot && (
@@ -131,7 +143,7 @@ export default function Hero() {
         </div>
       </div>
 
-      <FlapTicker text={ticker} instant={reduceMotion} />
+      <FlapTicker items={ticker} label={tickerLabel} instant={reduceMotion} />
     </section>
   )
 }

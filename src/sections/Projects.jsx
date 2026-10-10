@@ -4,10 +4,15 @@ import { FiGithub } from 'react-icons/fi'
 import { useLanguage } from '../context/contexts'
 import { projects, projectCategories, categoriesOf } from '../data/projects'
 import { profile } from '../data/profile'
+import { scrollToTarget } from '../lib/smoothScroll'
 import SectionHeading from '../components/SectionHeading'
 import ProjectCard from '../components/ProjectCard'
 import Button from '../components/Button'
 import styles from './Projects.module.css'
+
+// "Last build" is the newest finished project; "Building" only shows while something is in progress
+const lastBuild = projects.find((p) => p.status !== 'in-progress')
+const building = projects.find((p) => p.status === 'in-progress')
 
 export default function Projects() {
   const { t, pick, lang } = useLanguage()
@@ -29,6 +34,27 @@ export default function Projects() {
             key={lang}
           >
             <p className={styles.subtitle}>{t('projects.subtitle')}</p>
+            <ul className={styles.now}>
+              {lastBuild && (
+                <li>
+                  <span className={styles.nowLabel}>{t('projects.lastBuild')}</span>
+                  <a href={`#project-${lastBuild.id}`} onClick={(e) => { e.preventDefault(); scrollToTarget(`#project-${lastBuild.id}`) }}>
+                    {lastBuild.title}
+                  </a>
+                </li>
+              )}
+              {building && (
+                <li>
+                  <span className={styles.nowLabel}>
+                    <span className={styles.nowDot} aria-hidden="true" />
+                    {t('projects.building')}
+                  </span>
+                  <a href={`#project-${building.id}`} onClick={(e) => { e.preventDefault(); scrollToTarget(`#project-${building.id}`) }}>
+                    {building.title}
+                  </a>
+                </li>
+              )}
+            </ul>
           </SectionHeading>
 
           {/* Filter tabs */}

@@ -84,6 +84,8 @@ const id = {
     title: 'Karya',
     titleAccent: 'pilihan.',
     subtitle: 'Koleksi hidup dari hal-hal yang saya bangun. Proyek baru ditambahkan setiap kali selesai.',
+    lastBuild: 'Terakhir dibuat',
+    building: 'Sedang dibuat',
     comingSoon: 'Sedang dikerjakan',
     code: 'Kode',
     demo: 'Demo',

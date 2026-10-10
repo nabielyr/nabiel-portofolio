@@ -94,3 +94,46 @@
     padding: 0.4rem 0.6rem;
   }
 }
+
+/* Last build / building strip under the heading */
+.now {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 2rem;
+  margin-top: 1.25rem;
+}
+
+.now li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.nowLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.nowDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.now a {
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+.now a:hover {
+  color: var(--accent-ink);
+}
