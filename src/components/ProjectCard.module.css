@@ -39,6 +39,20 @@
   transition: transform 0.8s var(--ease-out);
 }
 
+/* a second cover for the dark theme, faded in over the first */
+.cover .night {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition:
+    transform 0.8s var(--ease-out),
+    opacity 0.5s var(--ease-out);
+}
+
+[data-theme='dark'] .cover .night {
+  opacity: 1;
+}
+
 .cover:hover img,
 .cover:hover .typeCover {
   transform: scale(1.04);

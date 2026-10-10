@@ -55,6 +55,7 @@ const AWAKE_AFTER_CLICK_S = 6 // ...after being woken by a click
 const AWAKE_AFTER_FOOD_S = 8 // ...after a treat
 const DROWSY_S = 3 // heavy eyelids, a yawn and a nod before it's asleep
 const EAT_S = 1.3
+const NIGHT_WAKE_DELAY_S = 0.8 // the theme switch's circular reveal takes 0.65s
 
 /** Shared materials: one instance per surface keeps shader programs and draw state low. */
 function useMaterials() {
@@ -309,6 +310,7 @@ export default function Owl({
     drowsyT: 0,
     sleep: 0, // how closed the eyes are and how far the head has dropped, 0..1
     // food
+    nightWake: -1, // seconds left before waking up for the night, -1 = not waiting
     want: false, // a treat is close: beak open, eyes wide
     keen: 0, // eased version of want, so the lean and the eyes glide in and out
     eating: 0, // eased 0..1 while eating
@@ -460,11 +462,21 @@ export default function Owl({
 
     // ---- awake, drowsy, asleep ----
     const busy = st.want || st.eatT >= 0 || st.spin >= 0 || st.hopY > 0
+    if (!night) st.nightWake = -1
     if (!flying) {
       if (night) {
-        // nocturnal: wide awake all night
-        if (st.phase !== 'awake') wake(AWAKE_S)
-        st.awakeLeft = AWAKE_S
+        // nocturnal: wide awake all night. Switched to night while asleep, it
+        // wakes once the theme's circular reveal has passed over it, so the
+        // eyes opening is actually seen (same wake-up as a click)
+        if (st.phase !== 'awake') {
+          if (st.nightWake < 0) st.nightWake = NIGHT_WAKE_DELAY_S
+          st.nightWake -= dt
+          if (st.nightWake <= 0) {
+            st.nightWake = -1
+            wake(AWAKE_S)
+          }
+        }
+        if (st.phase === 'awake') st.awakeLeft = AWAKE_S
       } else if (st.phase === 'awake' && !busy && !reduceMotion) {
         st.awakeLeft -= dt
         if (st.awakeLeft <= 0) {

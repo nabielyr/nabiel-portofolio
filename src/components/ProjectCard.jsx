@@ -35,7 +35,12 @@ export default function ProjectCard({ project }) {
         aria-label={`${project.title} - ${t('projects.view')}`}
       >
         {project.image ? (
-          <img src={project.image} alt="" loading="lazy" width="1200" height="750" />
+          <>
+            <img src={project.image} alt="" loading="lazy" width="1200" height="750" />
+            {project.imageNight && (
+              <img className={styles.night} src={project.imageNight} alt="" loading="lazy" width="1200" height="750" />
+            )}
+          </>
         ) : (
           <TypeCover title={project.title} />
         )}

@@ -12,6 +12,7 @@
  *  - tech        array of technologies used
  *  - image       optional, e.g. '/projects/my-project.webp' (put the file in public/projects/)
  *                (16:10); if empty, the title is set in type as the cover
+ *  - imageNight  optional cover swapped in when the dark theme is on
  *  - github      optional repo URL
  *  - demo        optional live demo URL
  *  - year        number
@@ -45,7 +46,8 @@ export const projects = [
       id: "Website ini. Portofolio dua bahasa dengan burung hantu 3D buatan sendiri dan ticker split-flap, diatur supaya tetap mulus di laptop biasa.",
     },
     tech: ['React', 'Three.js', 'Framer Motion', 'Vite'],
-    image: '/projects/portfolio.webp',
+    image: '/projects/portfolio.webp', // Hoo asleep, as he is by day
+    imageNight: '/projects/portfolio-night.webp', // shown in the dark theme: he's up at night
     github: 'https://github.com/nabielyr/nabiel-portofolio',
     demo: 'https://nabiel-portofolio-five.vercel.app/',
     year: 2026,
