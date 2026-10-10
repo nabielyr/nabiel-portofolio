@@ -1,18 +1,51 @@
 .logo {
-  display: inline-flex;
-  align-items: flex-end;
-  gap: 0.06em;
-  font-family: var(--font-display);
-  font-weight: 900;
-  line-height: 0.8;
-  letter-spacing: 0.01em;
-  color: var(--ink);
+  --logo-face: #2b4174;
+  display: block;
+  overflow: visible;
 }
 
-/* the square full stop, like the one after YANDRA */
-.dot {
-  width: 0.2em;
-  height: 0.2em;
-  margin-bottom: 0.02em;
-  background: var(--accent);
+[data-theme='dark'] .logo {
+  --logo-face: #cfc6b2;
+}
+
+.head,
+.pupil {
+  fill: var(--ink);
+}
+
+.face {
+  fill: var(--logo-face);
+}
+
+.white {
+  fill: var(--paper);
+}
+
+.orange {
+  fill: var(--accent);
+}
+
+.eyes {
+  transform-box: view-box;
+  transform-origin: 24px 24.6px;
+}
+
+/* a quick blink when pointed at */
+a:hover > .logo .eyes,
+.logo:hover .eyes {
+  animation: blink 0.32s ease-in-out;
+}
+
+@keyframes blink {
+  45%,
+  55% {
+    transform: scaleY(0.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a:hover > .logo .eyes,
+  .logo:hover .eyes {
+    animation: none;
+  }
 }

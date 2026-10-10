@@ -45,12 +45,18 @@ function AdaptiveDpr() {
 /**
  * Keeps the owl the same size on screen whatever the canvas size is.
  * - "stage": a tall canvas; the scene sits at the bottom at `unitPx` pixels per
- *   world unit, leaving open sky above for the landing and the hops
+ *   world unit, leaving open sky above for the entrance and the hops
  * - "fit": the whole scene fits the canvas (small layouts)
+ *
+ * `anchor` is the element the owl should stand in the middle of, when the
+ * canvas is wider than that spot (it runs on to the edge of the page so the
+ * owl can fly in from the corner). The visible area, in world units, is
+ * written to `viewRef` for the entrance flight.
  */
-function Framing({ mode, unitPx, scene }) {
+function Framing({ mode, unitPx, scene, anchor, viewRef }) {
   const size = useThree((s) => s.size)
   const camera = useThree((s) => s.camera)
+  const gl = useThree((s) => s.gl)
   useLayoutEffect(() => {
     const tan = Math.tan(((FOV / 2) * Math.PI) / 180)
     let px
@@ -64,11 +70,24 @@ function Framing({ mode, unitPx, scene }) {
       const halfH = size.height / (2 * px)
       targetY = scene.bottom - scene.margin + halfH
     }
+    // shift the camera so world x = 0 sits in the middle of the anchor
+    let cx = 0
+    if (anchor) {
+      const a = anchor.getBoundingClientRect()
+      const c = gl.domElement.getBoundingClientRect()
+      cx = (c.left + c.width / 2 - (a.left + a.width / 2)) / px
+    }
     const distance = size.height / (2 * tan * px)
-    camera.position.set(0, targetY + 0.15, distance)
-    camera.lookAt(0, targetY, 0)
+    camera.position.set(cx, targetY + 0.15, distance)
+    camera.lookAt(cx, targetY, 0)
     camera.updateProjectionMatrix()
-  }, [size, camera, mode, unitPx, scene])
+    viewRef.current = {
+      px,
+      cx,
+      right: cx + size.width / (2 * px),
+      top: targetY + size.height / (2 * px),
+    }
+  }, [size, camera, gl, mode, unitPx, scene, anchor, viewRef])
   return null
 }
 
@@ -88,9 +107,10 @@ function usePointer() {
   return pointer
 }
 
-function OwlCanvas({ pose = 'hero', onHoot, reduceMotion = false, eventSource, framing = 'fit', unitPx = 160, className = '' }) {
+function OwlCanvas({ pose = 'hero', onHoot, reduceMotion = false, eventSource, anchor = null, framing = 'fit', unitPx = 160, className = '' }) {
   const wrap = useRef(null)
   const owl = useRef(null)
+  const view = useRef(null)
   const pointer = usePointer()
   const [warm, setWarm] = useState(false)
   const [inView, setInView] = useState(true)
@@ -114,7 +134,27 @@ function OwlCanvas({ pose = 'hero', onHoot, reduceMotion = false, eventSource, f
         state.raycaster.setFromCamera(state.pointer, state.camera)
       },
     })
-    Promise.resolve(gl.compileAsync?.(scene, camera))
+    // Shader error checks read compile logs back from the GPU synchronously the
+    // first time each shader is used (a 10-25ms stall each on Windows/ANGLE).
+    // Keep them for development only.
+    gl.debug.checkShaderErrors = import.meta.env.DEV
+    // Upload the painted textures one per frame, then compile the shaders off
+    // the main thread, all before the owl is shown: done on its first frame,
+    // the uploads stall the GPU process and every shader link waits on them.
+    const textures = new Set()
+    scene.traverse((o) => {
+      const m = o.material
+      if (m && !Array.isArray(m)) for (const t of [m.map, m.bumpMap]) if (t) textures.add(t)
+    })
+    const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve))
+    const warmUp = async () => {
+      for (const t of textures) {
+        gl.initTexture(t)
+        await nextFrame()
+      }
+      await gl.compileAsync?.(scene, camera)
+    }
+    warmUp()
       .catch(() => {})
       .then(() => setWarm(true))
   }, [])
@@ -142,11 +182,13 @@ function OwlCanvas({ pose = 'hero', onHoot, reduceMotion = false, eventSource, f
         style={eventSource ? { pointerEvents: 'none' } : undefined}
         aria-hidden="true"
       >
-        <Framing mode={framing} unitPx={unitPx} scene={SCENES[pose] ?? SCENES.hero} />
-        <hemisphereLight args={['#fff6e8', '#1b2a4d', 1.15]} />
-        <directionalLight position={[-3, 5, 4]} intensity={2.1} color="#fff1dc" />
+        <Framing mode={framing} unitPx={unitPx} scene={SCENES[pose] ?? SCENES.hero} anchor={anchor} viewRef={view} />
+        <hemisphereLight args={['#fff6e8', '#1b2a4d', 1.2]} />
+        <directionalLight position={[-3, 5, 4]} intensity={2} color="#fff1dc" />
         {/* cool rim light keeps the navy silhouette readable on dark paper */}
         <directionalLight position={[3.5, 2.5, -3]} intensity={2.2} color="#d6e1ff" />
+        {/* a soft front fill puts a catch of light in the glossy eyes and beak */}
+        <directionalLight position={[1, 1.5, 6]} intensity={0.5} color="#ffffff" />
         {pose === 'hero' && <Books top={-1.04} />}
         <group
           onClick={(e) => {
@@ -161,7 +203,7 @@ function OwlCanvas({ pose = 'hero', onHoot, reduceMotion = false, eventSource, f
           onPointerOver={() => setHover(true)}
           onPointerOut={() => setHover(false)}
         >
-          <Owl ref={owl} pose={pose} pointer={pointer} reduceMotion={reduceMotion} />
+          <Owl ref={owl} pose={pose} pointer={pointer} reduceMotion={reduceMotion} viewRef={view} />
         </group>
         <AdaptiveDpr />
       </Canvas>

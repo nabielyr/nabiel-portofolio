@@ -32,32 +32,6 @@ export default function Experience() {
       <div className="container">
         <SectionHeading index={3} kicker={t('experience.kicker')} title={t('experience.title')} />
 
-        <ol className={styles.list}>
-          {newestFirst.map((item) => (
-            <li key={item.id} className={styles.row}>
-              <p className={styles.when}>
-                <span>
-                  {pick(item.start)} → {pick(item.end)}
-                </span>
-                {item.current && (
-                  <span className={styles.now}>
-                    <span className={styles.nowDot} aria-hidden="true" />
-                    {t('experience.now')}
-                  </span>
-                )}
-              </p>
-              <div className={styles.what}>
-                <h3 className={styles.role}>{pick(item.role)}</h3>
-                <p className={styles.org}>
-                  {item.logo && <img src={item.logo} alt="" width="22" height="22" loading="lazy" />}
-                  {item.org}
-                </p>
-              </div>
-              <p className={styles.desc}>{pick(item.description)}</p>
-            </li>
-          ))}
-        </ol>
-
         <h3 className={styles.subTitle}>{t('experience.education')}</h3>
         {education.map((edu) => (
           <div key={edu.id} className={styles.edu}>
@@ -89,6 +63,33 @@ export default function Experience() {
             </ul>
           </div>
         ))}
+        <h3 className={styles.subTitle}>{t('experience.work')}</h3>
+        <ol className={styles.list}>
+          {newestFirst.map((item) => (
+            <li key={item.id} className={styles.row}>
+              <p className={styles.when}>
+                <span>
+                  {pick(item.start)} → {pick(item.end)}
+                </span>
+                {item.current && (
+                  <span className={styles.now}>
+                    <span className={styles.nowDot} aria-hidden="true" />
+                    {t('experience.now')}
+                  </span>
+                )}
+              </p>
+              <div className={styles.what}>
+                <h3 className={styles.role}>{pick(item.role)}</h3>
+                <p className={styles.org}>
+                  {item.logo && <img src={item.logo} alt="" width="22" height="22" loading="lazy" />}
+                  {item.org}
+                </p>
+              </div>
+              <p className={styles.desc}>{pick(item.description)}</p>
+            </li>
+          ))}
+        </ol>
+
       </div>
     </section>
   )

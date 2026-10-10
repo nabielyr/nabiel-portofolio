@@ -31,6 +31,7 @@ const en = {
     nowText: 'teaching assistant @ IS Lab',
     time: 'Malang',
     open: 'Open to',
+    drag: 'Drag',
     openText: 'opportunities',
   },
   about: {
@@ -50,10 +51,11 @@ const en = {
     caption: "That's me.",
   },
   experience: {
-    kicker: 'Experience',
-    title: 'Experience',
+    kicker: 'Background',
+    title: 'Education & experience',
     now: 'Now',
     to: 'to',
+    work: 'Experience',
     education: 'Education',
     year: 'Year',
     of: 'of',
@@ -72,11 +74,9 @@ const en = {
     building: 'Currently building',
     all: 'All',
     inProgress: 'In progress',
-    comingSoon: 'In progress',
     demo: 'Live demo',
     code: 'Source code',
     view: 'View',
-    empty: 'Nothing in this category yet.',
     more: 'More on GitHub',
   },
   contact: {

@@ -23,7 +23,7 @@ export const profile = {
    * 2. Set the path below, e.g. '/cv/CV_Muhammad_Nabiel_Yandra.pdf'
    * Leave as null to hide every "Download CV" button.
    */
-  cv: null,
+  cv: '/cv/CV_Muhammad_Nabiel_Yandra.pdf',
 
   socials: [
     { id: 'email', label: 'Email', handle: 'nabielyandra@gmail.com', url: 'mailto:nabielyandra@gmail.com' },

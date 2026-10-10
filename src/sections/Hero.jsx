@@ -9,17 +9,31 @@ import styles from './Hero.module.css'
 
 const OwlCanvas = lazy(() => import('../components/owl/OwlCanvas'))
 
-/** Mount the 3D owl once the browser is idle, so the name paints first. */
+/**
+ * Mount the 3D owl once the browser is idle, so the name paints first, and
+ * after its feathers have been painted in small idle slices.
+ */
 function useIdleMount() {
   const [ready, setReady] = useState(false)
   useEffect(() => {
-    const go = () => setReady(true)
+    let alive = true
+    const go = () =>
+      import('../components/owl/plumage')
+        .then((m) => m.preparePlumage())
+        .catch(() => {})
+        .then(() => alive && setReady(true))
+    let cancel
     if ('requestIdleCallback' in window) {
       const id = window.requestIdleCallback(go, { timeout: 1200 })
-      return () => window.cancelIdleCallback(id)
+      cancel = () => window.cancelIdleCallback(id)
+    } else {
+      const id = setTimeout(go, 300)
+      cancel = () => clearTimeout(id)
     }
-    const id = setTimeout(go, 300)
-    return () => clearTimeout(id)
+    return () => {
+      alive = false
+      cancel()
+    }
   }, [])
   return ready
 }
@@ -47,6 +61,8 @@ export default function Hero() {
   const narrow = useMediaQuery('(max-width: 860px)')
   // the hero section drives the owl's pointer events, so its tall canvas never blocks links
   const [heroEl, setHeroEl] = useState(null)
+  // the owl's spot next to the name; on wide screens its canvas runs on to the page's right edge
+  const [owlSpot, setOwlSpot] = useState(null)
   const time = useMalangTime()
   const [hoot, setHoot] = useState(null)
   const hootTimer = useRef(0)
@@ -69,6 +85,20 @@ export default function Hero() {
     { label: t('ticker.open'), value: t('ticker.openText') },
   ]
   const tickerLabel = ticker.map((i) => `${i.label} ${i.value}`).join(' · ')
+
+  const owl = mountOwl && heroEl && (narrow || owlSpot) && (
+    <Suspense fallback={null}>
+      <OwlCanvas
+        pose="hero"
+        onHoot={onHoot}
+        reduceMotion={reduceMotion}
+        eventSource={heroEl}
+        anchor={narrow ? null : owlSpot}
+        framing={narrow ? 'fit' : 'stage'}
+        unitPx={142}
+      />
+    </Suspense>
+  )
 
   return (
     <section id="home" ref={setHeroEl} className={styles.hero}>
@@ -122,19 +152,8 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className={styles.owl}>
-          {mountOwl && heroEl && (
-            <Suspense fallback={null}>
-              <OwlCanvas
-                pose="hero"
-                onHoot={onHoot}
-                reduceMotion={reduceMotion}
-                eventSource={heroEl}
-                framing={narrow ? 'fit' : 'stage'}
-                unitPx={142}
-              />
-            </Suspense>
-          )}
+        <div ref={setOwlSpot} className={styles.owl}>
+          {narrow && owl}
           {hoot && (
             <span key={hoot.key} className={styles.bubble} role="status">
               {hoot.line}
@@ -143,7 +162,9 @@ export default function Hero() {
         </div>
       </div>
 
-      <FlapTicker items={ticker} label={tickerLabel} instant={reduceMotion} />
+      {!narrow && <div className={styles.owlStage}>{owl}</div>}
+
+      <FlapTicker items={ticker} label={tickerLabel} dragLabel={t('ticker.drag')} instant={reduceMotion} />
     </section>
   )
 }

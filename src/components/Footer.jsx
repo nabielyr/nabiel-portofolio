@@ -15,7 +15,7 @@ export default function Footer() {
     <footer className={styles.footer}>
       <div className={`container ${styles.inner}`}>
         <a href="#home" onClick={toTop} className={styles.brand} aria-label={t('footer.top')}>
-          <Logo size={26} />
+          <Logo size={30} />
         </a>
         <p className={styles.copy}>
           © {new Date().getFullYear()} Muhammad Nabiel Yandra. {t('footer.rights')}

@@ -14,15 +14,17 @@ export default function About() {
 
         <div className={styles.grid}>
           <figure className={styles.photo}>
-            <img
-              src={profile.photo.src}
-              srcSet={profile.photo.srcSet}
-              sizes="(max-width: 860px) 70vw, 380px"
-              alt={profile.name}
-              width="800"
-              height="1000"
-              loading="lazy"
-            />
+            <div className={styles.frame}>
+              <img
+                src={profile.photo.src}
+                srcSet={profile.photo.srcSet}
+                sizes="(max-width: 860px) 240px, 290px"
+                alt={profile.name}
+                width="800"
+                height="1000"
+                loading="lazy"
+              />
+            </div>
             <figcaption>{t('about.caption')}</figcaption>
           </figure>
 

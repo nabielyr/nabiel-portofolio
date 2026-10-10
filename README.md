@@ -10,10 +10,10 @@ Hi, I'm Nabiel, an Information Systems student at Brawijaya University in Malang
 
 ## What's on the page
 
-- **Hero.** My name, what I study, where I'm based and what I'm open to. Hoo, a navy owl I built in Three.js, flies down from the top of the page and lands on a stack of books. He follows your cursor with his head, blinks, and hops when you click him (double-click for a full head turn).
-- **Split-flap ticker.** Along the bottom of the hero, a row of split-flap tiles shows what I'm doing now, the time in Malang and what I'm open to. The tiles stay put and the text flips through them, like a station board.
-- **Work.** The projects I've built, with live demos and source code, what I built last and what I'm building now.
-- **About, Experience and Education.** A short intro, a few facts, my roles at the lab and on campus, and my degree.
+- **Hero.** My name, what I study, where I'm based and what I'm open to, plus my CV. Hoo, a navy owl I built in Three.js, flies in from the top right corner of the page, glides, flares his wings and lands on a stack of books. He follows your cursor with his head and eyes, blinks, and hops when you click him (double-click for a full head turn). His face is also the site's logo.
+- **Split-flap ticker.** Along the bottom of the hero, a row of split-flap tiles shows what I'm doing now, the time in Malang and what I'm open to. The tiles stay put and the text flips through them, like a station board. It stops when you point at it, and you can drag or fling it either way.
+- **Work.** The projects I've built in one compact grid, with icon links to the code and the live demo, what I built last and what I'm building now.
+- **About, Education and Experience.** A short intro, a few facts, my degree, and my roles at the lab and on campus.
 - **Toolkit.** The core tools I actually reach for, plus one line for everything else.
 - **Contact.** A big "Get in touch" with Hoo standing on the letters, my email (copy in one click), my links and the local time in Malang.
 
@@ -33,7 +33,7 @@ It's fully bilingual (English and Bahasa Indonesia) and has both a dark and a li
 A 3D owl and a ticker that never stops can easily make a page feel heavy, so I spent some time on this:
 
 - The name and intro paint first; the owl's 3D code loads once the browser is idle, compiles its shaders before the first frame, and only renders while it's on screen.
-- The owl is built from simple shapes that share a handful of materials, and only moves groups around, so it's cheap to draw. His shadow is a small gradient texture instead of a real-time shadow pass.
+- The owl is built from simple shapes that share a handful of materials, and only moves groups around, so it's cheap to draw. His feathers, face and belly are painted into textures once, a slice at a time while the browser is idle, and uploaded to the GPU one per frame before he appears. His shadow is a small gradient texture instead of a real-time shadow pass.
 - The split-flap ticker is drawn on a single canvas. My first version used a DOM element per tile and created about a hundred compositor layers; the canvas version cut the longest task from 244 ms to about 5 ms.
 - The center dot of the custom cursor is a real system cursor image, so it never lags behind your mouse. Only the ring around it is animated.
 
@@ -69,7 +69,7 @@ All the content lives in plain data files, so updating the site rarely means tou
 
 A few notes:
 
-- **Projects.** Pick a category (`ai-ml`, `data-science`, `web-dev` or `fun`), or an array of them if a project fits more than one, and add a `{ en, id }` description. Project screenshots go in `public/projects/` (WebP works best). If `image` is left empty, the title is set in type as the cover. A project with `status: 'in-progress'` goes in the "In progress" list and shows up as "Currently building".
+- **Projects.** Pick a category (`ai-ml`, `data-science`, `web-dev` or `fun`), or an array of them if a project fits more than one, and add a `{ en, id }` description. Project screenshots go in `public/projects/` (WebP works best). If `image` is left empty, the title is set in type as the cover. A project with `status: 'in-progress'` goes at the end of the grid with an "In progress" badge and shows up as "Currently building".
 - **CV.** Put the PDF in `public/cv/` and set `cv` in `profile.js` to its path, e.g. `'/cv/CV_Muhammad_Nabiel_Yandra.pdf'`. The download button shows up on its own.
 - **Text.** Anything that appears on the page should be added to both `en.js` and `id.js`.
 

@@ -7,19 +7,18 @@
  *  - id          unique slug (no spaces)
  *  - title       project name
  *  - category    'ai-ml' | 'data-science' | 'web-dev' | 'fun', or an array
- *                of them when a project fits more than one (the first one
- *                picks the generated cover art)
+ *                of them when a project fits more than one
  *  - description { en: '...', id: '...' }
  *  - tech        array of technologies used
  *  - image       optional, e.g. '/projects/my-project.webp' (put the file in public/projects/)
- *                if empty, a unique generative cover is drawn automatically
+ *                (16:10); if empty, the title is set in type as the cover
  *  - github      optional repo URL
  *  - demo        optional live demo URL
- *  - featured    true = bigger card
  *  - year        number
- *  - status      optional: 'in-progress' shows a "Coming soon" badge
+ *  - status      optional: 'in-progress' adds an "In progress" badge and the
+ *                "Currently building" link; it is listed after finished work
  *
- *  Newest / most important projects first.
+ *  Newest first. The first finished project is the "Last built" link.
  */
 export const projects = [
   {
@@ -34,7 +33,6 @@ export const projects = [
     image: '/projects/letterfall.webp',
     github: 'https://github.com/nabielyr/letterfall',
     demo: 'https://letterfall-eight.vercel.app/',
-    featured: true,
     year: 2026,
   },
   {
@@ -49,7 +47,6 @@ export const projects = [
     image: '/projects/portfolio.webp',
     github: 'https://github.com/nabielyr/nabiel-portofolio',
     demo: 'https://nabiel-portofolio-five.vercel.app/',
-    featured: true,
     year: 2026,
   },
   {
@@ -64,7 +61,6 @@ export const projects = [
     image: '/projects/signspeak.webp',
     github: 'https://github.com/nabielyr/SignLanguage',
     demo: '',
-    featured: true,
     year: 2026,
   },
   {
@@ -79,7 +75,6 @@ export const projects = [
     image: '/projects/indobert-hantavirus.webp',
     github: 'https://github.com/nabielyr/IndoBERT-for-Hantavirus-Sentiment-Analysis',
     demo: '',
-    featured: true,
     year: 2026,
   },
   {
@@ -94,7 +89,6 @@ export const projects = [
     image: '/projects/tech-layoffs.webp',
     github: 'https://github.com/nabielyr/Tech-Layoffs-Trend-Analysis',
     demo: '',
-    featured: true,
     year: 2026,
   },
   {
@@ -109,7 +103,6 @@ export const projects = [
     image: '',
     github: 'https://github.com/nabielyr/what-gets-starred',
     demo: '',
-    featured: false,
     year: 2026,
     status: 'in-progress',
   },

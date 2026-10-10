@@ -1,7 +1,3 @@
-.list {
-  border-top: 1px solid var(--rule-strong);
-}
-
 .row,
 .edu {
   display: grid;
@@ -73,7 +69,7 @@
   line-height: 1.6;
 }
 
-/* ---------- Education ---------- */
+/* ---------- Education, then experience ---------- */
 .subTitle {
   margin-top: clamp(3.5rem, 7vw, 6rem);
   padding-bottom: 0.9rem;
@@ -83,6 +79,10 @@
   text-transform: uppercase;
   color: var(--ink-soft);
   border-bottom: 1px solid var(--rule-strong);
+}
+
+.subTitle:first-of-type {
+  margin-top: 0;
 }
 
 .progress {

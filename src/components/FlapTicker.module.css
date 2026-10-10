@@ -24,6 +24,10 @@
   position: relative;
   overflow: hidden;
   background: var(--board);
+  /* horizontal drags move the board; vertical ones still scroll the page */
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 [data-theme='dark'] .ticker {

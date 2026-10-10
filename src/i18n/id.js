@@ -31,6 +31,7 @@ const id = {
     nowText: 'asisten praktikum @ IS Lab',
     time: 'Malang',
     open: 'Terbuka untuk',
+    drag: 'Geser',
     openText: 'kesempatan baru',
   },
   about: {
@@ -50,10 +51,11 @@ const id = {
     caption: 'Ini saya.',
   },
   experience: {
-    kicker: 'Pengalaman',
-    title: 'Pengalaman',
+    kicker: 'Latar belakang',
+    title: 'Pendidikan & pengalaman',
     now: 'Aktif',
     to: 'sampai',
+    work: 'Pengalaman',
     education: 'Pendidikan',
     year: 'Tahun',
     of: 'dari',
@@ -72,11 +74,9 @@ const id = {
     building: 'Sedang dikerjakan',
     all: 'Semua',
     inProgress: 'Sedang dikerjakan',
-    comingSoon: 'Sedang dikerjakan',
     demo: 'Demo langsung',
     code: 'Kode sumber',
     view: 'Lihat',
-    empty: 'Belum ada di kategori ini.',
     more: 'Lainnya di GitHub',
   },
   contact: {

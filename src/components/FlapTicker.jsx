@@ -3,7 +3,9 @@ import styles from './FlapTicker.module.css'
 
 const STEP_MS = 280 // how often the text moves one tile to the left
 const FLIP_MS = 95 // each half of a flip
-const WAVE_MS = 4 // tiny left-to-right delay so a step rolls like a wave
+const WAVE_MS = 4 // tiny delay from tile to tile so a step rolls like a wave
+const RESUME_MS = 500 // pause after the pointer leaves before the board moves on
+const FRICTION = 0.004 // how fast a flung board slows down (per ms)
 const DOT = '•'
 
 /** [{ label, value }] -> one long row of { ch, accent } cells, looped */
@@ -26,10 +28,13 @@ function toCells(items) {
  * tiles stay put; the text travels through them, every tile flipping when its
  * letter changes - the way a station ticker board works.
  *
+ * It stops while the pointer is over it, and can be dragged (or flung) left
+ * and right: every tile's width of drag moves the text one tile.
+ *
  * Drawn on a single 2D canvas: one layer, no DOM or style work per step. The
  * flip is the classic 2D trick of squashing the moving half toward the hinge.
  */
-export default function FlapTicker({ items, label, instant = false }) {
+export default function FlapTicker({ items, label, dragLabel, instant = false }) {
   const wrap = useRef(null)
   const canvasRef = useRef(null)
   const cellsRef = useRef(toCells(items))
@@ -49,6 +54,12 @@ export default function FlapTicker({ items, label, instant = false }) {
     let raf = 0
     let stepTimer = 0
     let visible = true
+    // pointer state: hovering or dragging stops the auto steps
+    let hover = false
+    let drag = null // { id, lastX, lastT, v } while a pointer is down
+    let glide = null // { v, last, raf } after a fling
+    let acc = 0 // px dragged that haven't added up to a whole tile yet
+    let resumeAt = 0
 
     const readTheme = () => {
       const css = getComputedStyle(el)
@@ -263,24 +274,105 @@ export default function FlapTicker({ items, label, instant = false }) {
       if (!raf) raf = requestAnimationFrame(loop)
     }
 
-    const step = () => {
-      if (visible && !document.hidden && d) {
-        const cells = cellsRef.current
-        offsetRef.current = (offsetRef.current + 1) % cells.length
-        const now = performance.now()
-        tiles.forEach((tile, i) => {
-          const next = cells[(offsetRef.current + i) % cells.length]
-          if (next.ch !== tile.cur.ch || next.accent !== tile.cur.accent) {
-            tile.prev = tile.cur
-            tile.cur = next
-            tile.start = now + i * WAVE_MS
-          } else {
-            tile.cur = next
-          }
-        })
-        kick()
+    // move the text one tile: +1 = to the left (the normal direction), -1 = to the right
+    const shift = (dir) => {
+      const cells = cellsRef.current
+      offsetRef.current = (offsetRef.current + dir + cells.length) % cells.length
+      const now = performance.now()
+      const last = tiles.length - 1
+      tiles.forEach((tile, i) => {
+        const next = cells[(offsetRef.current + i) % cells.length]
+        if (next.ch !== tile.cur.ch || next.accent !== tile.cur.accent) {
+          tile.prev = tile.cur
+          tile.cur = next
+          // the wave rolls the way the text travels
+          tile.start = now + (dir > 0 ? i : last - i) * WAVE_MS
+        } else {
+          tile.cur = next
+        }
+      })
+      kick()
+    }
+
+    // turn dragged pixels into whole-tile moves
+    const travel = (px) => {
+      const cell = d.w + d.gap
+      acc += px
+      while (acc >= cell) {
+        shift(-1)
+        acc -= cell
       }
+      while (acc <= -cell) {
+        shift(1)
+        acc += cell
+      }
+    }
+
+    const held = () => hover || drag || glide || performance.now() < resumeAt
+
+    const step = () => {
+      if (visible && !document.hidden && d && !held()) shift(1)
       stepTimer = setTimeout(step, STEP_MS)
+    }
+
+    const stopGlide = () => {
+      if (!glide) return
+      cancelAnimationFrame(glide.raf)
+      glide = null
+    }
+
+    const glideFrame = (now) => {
+      const g = glide
+      const dt = Math.min(now - g.last, 50)
+      g.last = now
+      travel(g.v * dt)
+      g.v *= Math.exp(-FRICTION * dt)
+      if (Math.abs(g.v) < 0.04) {
+        glide = null
+        acc = 0
+        resumeAt = performance.now() + RESUME_MS
+        return
+      }
+      g.raf = requestAnimationFrame(glideFrame)
+    }
+
+    const onEnter = (e) => {
+      if (e.pointerType === 'mouse') hover = true
+    }
+    const onLeave = (e) => {
+      if (e.pointerType !== 'mouse') return
+      hover = false
+      resumeAt = performance.now() + RESUME_MS
+    }
+    const onDown = (e) => {
+      if (e.button !== 0 || !d) return
+      stopGlide()
+      acc = 0
+      drag = { id: e.pointerId, lastX: e.clientX, lastT: e.timeStamp, v: 0 }
+      el.setPointerCapture?.(e.pointerId)
+    }
+    const onMove = (e) => {
+      if (!drag || e.pointerId !== drag.id) return
+      const dx = e.clientX - drag.lastX
+      const dt = Math.max(1, e.timeStamp - drag.lastT)
+      drag.lastX = e.clientX
+      drag.lastT = e.timeStamp
+      // smoothed speed in px/ms, used for the fling
+      drag.v = drag.v * 0.6 + (dx / dt) * 0.4
+      travel(dx)
+    }
+    const onUp = (e) => {
+      if (!drag || e.pointerId !== drag.id) return
+      const { v } = drag
+      const stale = e.timeStamp - drag.lastT > 80 // the pointer stopped before letting go
+      drag = null
+      if (!stale && Math.abs(v) > 0.25) {
+        glide = { v: Math.max(-4, Math.min(4, v)), last: performance.now(), raf: 0 }
+        glide.raf = requestAnimationFrame(glideFrame)
+      } else {
+        acc = 0
+        resumeAt = performance.now() + RESUME_MS
+      }
     }
 
     measure()
@@ -307,9 +399,23 @@ export default function FlapTicker({ items, label, instant = false }) {
     })
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
 
+    el.addEventListener('pointerenter', onEnter)
+    el.addEventListener('pointerleave', onLeave)
+    el.addEventListener('pointerdown', onDown)
+    el.addEventListener('pointermove', onMove)
+    el.addEventListener('pointerup', onUp)
+    el.addEventListener('pointercancel', onUp)
+
     return () => {
       cancelAnimationFrame(raf)
       clearTimeout(stepTimer)
+      stopGlide()
+      el.removeEventListener('pointerenter', onEnter)
+      el.removeEventListener('pointerleave', onLeave)
+      el.removeEventListener('pointerdown', onDown)
+      el.removeEventListener('pointermove', onMove)
+      el.removeEventListener('pointerup', onUp)
+      el.removeEventListener('pointercancel', onUp)
       ro.disconnect()
       io.disconnect()
       mo.disconnect()
@@ -317,7 +423,14 @@ export default function FlapTicker({ items, label, instant = false }) {
   }, [instant])
 
   return (
-    <div ref={wrap} className={styles.ticker} role="marquee" aria-label={label}>
+    <div
+      ref={wrap}
+      className={styles.ticker}
+      role="marquee"
+      aria-label={label}
+      data-cursor-label={dragLabel}
+      data-cursor-icon="↔"
+    >
       <canvas ref={canvasRef} className={styles.canvas} aria-hidden="true" />
     </div>
   )

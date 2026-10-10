@@ -14,21 +14,26 @@ const lastBuild = finished[0]
 const building = inProgress[0]
 const github = profile.socials.find((s) => s.id === 'github')
 
-const countFor = (id) => (id === 'all' ? finished.length : finished.filter((p) => categoriesOf(p).includes(id)).length)
-
-function jumpTo(id) {
-  return (e) => {
-    e.preventDefault()
-    scrollToTarget(`#project-${id}`)
-  }
-}
+// one grid: finished work first, then whatever is still being built
+const ordered = [...finished, ...inProgress]
+const inCategory = (id) => (id === 'all' ? ordered : ordered.filter((p) => categoriesOf(p).includes(id)))
 
 export default function Projects() {
   const { t, pick } = useLanguage()
   const [active, setActive] = useState('all')
 
-  const shown = active === 'all' ? finished : finished.filter((p) => categoriesOf(p).includes(active))
-  const [feature, ...rest] = active === 'all' ? shown : [null, ...shown]
+  const shown = inCategory(active)
+
+  // jump to a card, clearing the filter first if it hides that card
+  const jumpTo = (id) => (e) => {
+    e.preventDefault()
+    if (shown.some((p) => p.id === id)) {
+      scrollToTarget(`#project-${id}`)
+      return
+    }
+    setActive('all')
+    requestAnimationFrame(() => scrollToTarget(`#project-${id}`))
+  }
 
   return (
     <section id="projects" className="section">
@@ -60,7 +65,7 @@ export default function Projects() {
 
         <div className={styles.filters} role="tablist" aria-label="Filter projects">
           {projectCategories.map((cat) => {
-            const count = countFor(cat.id)
+            const count = inCategory(cat.id).length
             return (
               <button
                 key={cat.id}
@@ -78,35 +83,11 @@ export default function Projects() {
           })}
         </div>
 
-        {feature && <ProjectCard key={`f-${feature.id}`} project={feature} feature />}
-
-        {rest.length > 0 && (
-          <div className={styles.grid}>
-            {rest.map((p) => (
-              <ProjectCard key={`${active}-${p.id}`} project={p} />
-            ))}
-          </div>
-        )}
-
-        {inProgress.length > 0 && (
-          <div className={styles.later}>
-            <h3 className={styles.laterTitle}>{t('projects.inProgress')}</h3>
-            <ul>
-              {inProgress.map((p) => (
-                <li key={p.id} id={`project-${p.id}`}>
-                  <a href={p.github} target="_blank" rel="noopener noreferrer" className={styles.row}>
-                    <span className={styles.rowYear}>{p.year}</span>
-                    <span className={styles.rowName}>{p.title}</span>
-                    <span className={styles.rowDesc}>{pick(p.description)}</span>
-                    <span className={styles.rowArrow} aria-hidden="true">
-                      ↗
-                    </span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        <div className={styles.grid}>
+          {shown.map((p) => (
+            <ProjectCard key={`${active}-${p.id}`} project={p} />
+          ))}
+        </div>
 
         <a className={styles.more} href={github.url} target="_blank" rel="noopener noreferrer">
           {t('projects.more')} ↗

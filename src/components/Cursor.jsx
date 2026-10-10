@@ -16,7 +16,8 @@ const SETTLE = 0.1 // px - stop the loop once the ring has caught up
  * - A thin ring trails it with a time-based lerp written straight to a DOM ref
  *   via translate3d (no React re-renders on mousemove). The rAF loop only runs
  *   while the ring is still moving.
- * - The ring grows over links and buttons and becomes a "View" label over project covers.
+ * - The ring grows over links and buttons and becomes a label where an element
+ *   asks for one (data-cursor-label, with an optional data-cursor-icon).
  */
 export default function Cursor() {
   const isTouch = useIsTouch()
@@ -27,6 +28,7 @@ export default function Cursor() {
     hover: false,
     down: false,
     label: '',
+    icon: '↗',
   })
 
   // Mutable coordinates to avoid React re-renders during motion
@@ -91,18 +93,22 @@ export default function Cursor() {
 
     // Context / element detection
     let currentInteractiveEl = null
+    let currentLabelledEl = null
     const onOver = (e) => {
       const target = e.target instanceof Element ? e.target : null
       const interactive = target?.closest(INTERACTIVE)
       const labelled = target?.closest('[data-cursor-label]')
 
-      if (interactive !== currentInteractiveEl) {
+      if (interactive !== currentInteractiveEl || labelled !== currentLabelledEl) {
         currentInteractiveEl = interactive
-        const hasLabel = labelled?.getAttribute('data-cursor-label') || ''
+        currentLabelledEl = labelled
+        // a link inside a labelled area (e.g. an icon) gets the plain hover ring
+        const useLabel = labelled && (!interactive || interactive.contains(labelled))
         setCursorState((prev) => ({
           ...prev,
           hover: Boolean(interactive || labelled),
-          label: hasLabel,
+          label: useLabel ? labelled.getAttribute('data-cursor-label') || '' : '',
+          icon: labelled?.getAttribute('data-cursor-icon') || '↗',
         }))
       }
     }
@@ -134,7 +140,7 @@ export default function Cursor() {
 
   if (isTouch) return null
 
-  const { hover, down, label } = cursorState
+  const { hover, down, label, icon } = cursorState
 
   let modeClass = styles.defaultMode
   if (label) modeClass = styles.labelMode
@@ -147,7 +153,11 @@ export default function Cursor() {
       <div ref={reticleRef} className={styles.anchor}>
         <div className={`${styles.ring} ${modeClass}`}>
           {/* turns into a small label over project covers */}
-          {label && <span className={styles.labelText}>{label} ↗</span>}
+          {label && (
+            <span className={styles.labelText}>
+              {label} {icon}
+            </span>
+          )}
         </div>
       </div>
     </div>
