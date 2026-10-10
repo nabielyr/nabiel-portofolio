@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
+import { FiGithub, FiLinkedin } from 'react-icons/fi'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import { useLanguage } from '../context/contexts'
 import { profile } from '../data/profile'
@@ -152,11 +153,25 @@ export default function Hero() {
                   {t('hero.ctaCv')} <span aria-hidden="true">↓</span>
                 </a>
               )}
-              <a href={github.url} target="_blank" rel="noopener noreferrer" className={styles.textLink}>
-                GitHub ↗
+              <a
+                href={github.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${styles.btn} ${styles.iconBtn}`}
+                aria-label="GitHub"
+                title="GitHub"
+              >
+                <FiGithub aria-hidden="true" />
               </a>
-              <a href={linkedin.url} target="_blank" rel="noopener noreferrer" className={styles.textLink}>
-                LinkedIn ↗
+              <a
+                href={linkedin.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${styles.btn} ${styles.iconBtn}`}
+                aria-label="LinkedIn"
+                title="LinkedIn"
+              >
+                <FiLinkedin aria-hidden="true" />
               </a>
             </div>
           </div>

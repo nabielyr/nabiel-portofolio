@@ -151,17 +151,18 @@
   color: #fff;
 }
 
-.textLink {
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
-  transition: color var(--dur-fast);
+/* GitHub / LinkedIn: round icon buttons, the same height as the pills */
+.iconBtn {
+  justify-content: center;
+  padding: 0;
+  /* a circle exactly as tall as the pills: their padding + line + border */
+  width: calc(1.5rem + 1.6em + 2px);
+  height: calc(1.5rem + 1.6em + 2px);
 }
 
-.textLink:hover {
-  color: var(--accent-ink);
+.iconBtn svg {
+  width: 1.2rem;
+  height: 1.2rem;
 }
 
 /* ---------- Owl ----------
