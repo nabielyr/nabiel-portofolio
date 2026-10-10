@@ -6,12 +6,17 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="theme-color" content="#F4EFE6" />
 
-    <!-- Restore the saved theme before first paint so there's no flash -->
+    <!-- Light by default. Only a theme the visitor picked with the switch is
+         restored (before first paint, so there's no flash). The old 'theme'
+         key was written on every visit to the previous site, so it's dropped. -->
     <script>
       try {
-        var saved = localStorage.getItem('theme')
-        if (saved === 'dark' || saved === 'light') document.documentElement.dataset.theme = saved
-        if (saved === 'dark') document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0F1B33')
+        localStorage.removeItem('theme')
+        var picked = localStorage.getItem('theme-choice')
+        if (picked === 'dark') {
+          document.documentElement.dataset.theme = 'dark'
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0F1B33')
+        }
       } catch (e) {}
     </script>
 

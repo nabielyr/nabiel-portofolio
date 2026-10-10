@@ -5,8 +5,8 @@ import { ThemeContext } from './contexts'
 const THEME_COLORS = { dark: '#0f1b33', light: '#f4efe6' }
 
 function getInitialTheme() {
-  if (typeof document === 'undefined') return 'dark'
-  return document.documentElement.dataset.theme === 'light' ? 'light' : 'dark'
+  if (typeof document === 'undefined') return 'light'
+  return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light'
 }
 
 export function ThemeProvider({ children }) {
@@ -14,11 +14,6 @@ export function ThemeProvider({ children }) {
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
-    try {
-      localStorage.setItem('theme', theme)
-    } catch {
-      /* storage unavailable */
-    }
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_COLORS[theme])
   }, [theme])
 
@@ -29,6 +24,12 @@ export function ThemeProvider({ children }) {
   const toggleTheme = useCallback(
     (event) => {
       const next = theme === 'dark' ? 'light' : 'dark'
+      // remember only an explicit choice; everyone else starts in light
+      try {
+        localStorage.setItem('theme-choice', next)
+      } catch {
+        /* storage unavailable */
+      }
       const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
       if (!document.startViewTransition || reduce) {
