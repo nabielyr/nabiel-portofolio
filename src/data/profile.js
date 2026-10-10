@@ -29,6 +29,7 @@ export const profile = {
     { id: 'email', label: 'Email', handle: 'nabielyandra@gmail.com', url: 'mailto:nabielyandra@gmail.com' },
     { id: 'linkedin', label: 'LinkedIn', handle: 'in/nabiel-yandra', url: 'https://linkedin.com/in/nabiel-yandra' },
     { id: 'github', label: 'GitHub', handle: '@nabielyr', url: 'https://github.com/nabielyr' },
+    { id: 'instagram', label: 'Instagram', handle: '@nabielyr', url: 'https://www.instagram.com/nabielyr/' },
     { id: 'linktree', label: 'Linktree', handle: 'linktr.ee/nabielyandra', url: 'https://linktr.ee/nabielyandra' },
   ],
 

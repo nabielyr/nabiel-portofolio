@@ -1,6 +1,6 @@
 const id = {
   meta: {
-    title: 'Muhammad Nabiel Yandra · Calon Machine Learning Engineer',
+    title: 'Muhammad Nabiel Yandra Portofolio',
   },
   nav: {
     projects: 'Karya',

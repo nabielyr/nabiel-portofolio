@@ -1,6 +1,6 @@
 const en = {
   meta: {
-    title: 'Muhammad Nabiel Yandra · Aspiring Machine Learning Engineer',
+    title: 'Muhammad Nabiel Yandra Portofolio',
   },
   nav: {
     projects: 'Work',

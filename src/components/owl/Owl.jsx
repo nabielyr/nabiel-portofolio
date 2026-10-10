@@ -81,8 +81,6 @@ function useMaterials() {
         roughness: 0.3,
         clearcoat: 1,
         clearcoatRoughness: 0.04,
-        polygonOffset: true,
-        polygonOffsetFactor: -2,
       }),
       shine: new THREE.MeshBasicMaterial({ color: '#ffffff' }),
       lash: new THREE.MeshStandardMaterial({ color: '#0d1630', roughness: 0.8 }),
@@ -129,7 +127,7 @@ function useBodyProfile() {
   }, [])
 }
 
-function Eye({ side, m, ball, iris, upper, lower, shine }) {
+function Eye({ side, m, ball, upper, lower, shine }) {
   return (
     <group position={[side * EYE.x, EYE.y, EYE.z]} rotation={[0, side * EYE.turn, 0]}>
       {/* everything inside is squashed into a shallow dome, so the eye sits in
@@ -140,8 +138,10 @@ function Eye({ side, m, ball, iris, upper, lower, shine }) {
           <mesh material={m.eye}>
             <sphereGeometry args={[EYE.r, 40, 28]} />
           </mesh>
-          <mesh ref={iris} material={m.iris} rotation={[Math.PI / 2, 0, 0]}>
-            <sphereGeometry args={[EYE.r * 1.012, 40, 10, 0, Math.PI * 2, 0, 0.66]} />
+          <mesh material={m.iris} rotation={[Math.PI / 2, 0, 0]}>
+            {/* a hair above the eyeball (no polygonOffset: that pulled the iris
+                toward the camera and let it show through closed eyelids) */}
+            <sphereGeometry args={[EYE.r * 1.02, 40, 10, 0, Math.PI * 2, 0, 0.66]} />
           </mesh>
         </group>
         {/* a catch light that stays put while the eye moves */}
@@ -277,8 +277,6 @@ export default function Owl({
   const lowR = useRef()
   const shineL = useRef()
   const shineR = useRef()
-  const irisL = useRef()
-  const irisR = useRef()
   const jaw = useRef()
   const mouthIn = useRef()
   const shadow = useRef()
@@ -581,11 +579,8 @@ export default function Owl({
     const lowAngle = THREE.MathUtils.lerp(THREE.MathUtils.lerp(LID.lowOpen, LID.lowHappy, happy), LID.shut, shut)
     for (const lid of [upL.current, upR.current]) if (lid) lid.rotation.x = upAngle
     for (const lid of [lowL.current, lowR.current]) if (lid) lid.rotation.x = lowAngle
-    // the catch light would poke through a closed lid; the iris is hidden only
-    // once the lids have fully met (any earlier and a white eye without a
-    // pupil peeks out between them)
+    // the catch light sits just proud of the eye and would poke through a closed lid
     for (const sh of [shineL.current, shineR.current]) if (sh) sh.visible = shut < 0.45
-    for (const ir of [irisL.current, irisR.current]) if (ir) ir.visible = shut < 0.985
 
     // ---- beak: open for a treat, chewing, yawning ----
     const mouthTarget = Math.max(chew, st.want ? 0.6 : 0, yawn)
@@ -764,8 +759,8 @@ export default function Owl({
               <sphereGeometry args={[HEAD.r, 72, 48]} />
             </mesh>
 
-            <Eye side={-1} m={m} ball={ballL} iris={irisL} upper={upL} lower={lowL} shine={shineL} />
-            <Eye side={1} m={m} ball={ballR} iris={irisR} upper={upR} lower={lowR} shine={shineR} />
+            <Eye side={-1} m={m} ball={ballL} upper={upL} lower={lowL} shine={shineL} />
+            <Eye side={1} m={m} ball={ballR} upper={upR} lower={lowR} shine={shineR} />
 
             <Tuft side={-1} m={m} />
             <Tuft side={1} m={m} />
