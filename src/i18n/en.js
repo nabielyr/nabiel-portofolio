@@ -41,7 +41,7 @@ const en = {
   about: {
     kicker: 'About',
     title: 'About me',
-    p1: "I'm Nabiel, an Information Systems student at Brawijaya University in Malang. I like building things that take messy data and make it useful, whether that ends up as a model, an analysis or a small web app.",
+    p1: "I'm Nabiel, an Information Systems student at Brawijaya University in Malang. I like building things that take messy data and make it useful, whether that ends up as a model, an analysis, or a small web app.",
     p2: "Most of my week is split between classes and the Intelligent System Laboratory, where I'm a resident and a teaching assistant. Explaining code to 49 students so far has taught me to write code other people can actually follow.",
     facts: [
       { label: 'Based in', value: 'Malang, Indonesia' },
