@@ -70,7 +70,7 @@ All the content lives in plain data files, so updating the site rarely means tou
 A few notes:
 
 - **Projects.** Pick a category (`ai-ml`, `data-science`, `web-dev` or `fun`), or an array of them if a project fits more than one, and add a `{ en, id }` description. Project screenshots go in `public/projects/` (WebP works best). If `image` is left empty, the title is set in type as the cover. A project with `status: 'in-progress'` goes at the end of the grid with an "In progress" badge and shows up as "Currently building".
-- **CV.** Put the PDF in `public/cv/` and set `cv` in `profile.js` to its path, e.g. `'/cv/CV_Muhammad_Nabiel_Yandra.pdf'`. The download button shows up on its own.
+- **CV.** Put the PDF in `public/cv/` and set `cv` in `profile.js` to its path, e.g. `'/cv/Curriculum Vitae Muhammad Nabiel Yandra.pdf'`. The download button shows up on its own.
 - **Text.** Anything that appears on the page should be added to both `en.js` and `id.js`.
 
 Every push to `main` is deployed to Vercel automatically.
