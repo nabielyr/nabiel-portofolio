@@ -76,12 +76,15 @@ const en = {
     inProgress: 'In progress',
     demo: 'Live demo',
     code: 'Source code',
+    coursework: 'Coursework',
     view: 'View',
     more: 'More on GitHub',
   },
   contact: {
     kicker: 'Contact',
     title: 'Get in touch',
+    // index of the letter in the title the owl lands on (one with a flat top)
+    perchAt: 7,
     lead: "I'm looking for internships and freelance work in machine learning, data or the web. If you have something in mind, or just want to say hi, my inbox is open.",
     emailLabel: 'Email',
     copy: 'Copy',

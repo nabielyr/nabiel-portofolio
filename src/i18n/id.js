@@ -76,12 +76,15 @@ const id = {
     inProgress: 'Sedang dikerjakan',
     demo: 'Demo langsung',
     code: 'Kode sumber',
+    coursework: 'Tugas kuliah',
     view: 'Lihat',
     more: 'Lainnya di GitHub',
   },
   contact: {
     kicker: 'Kontak',
     title: 'Hubungi saya',
+    // index of the letter in the title the owl lands on (one with a flat top)
+    perchAt: 2,
     lead: 'Saya sedang mencari kesempatan magang dan pekerjaan freelance di bidang machine learning, data, atau web. Kalau kamu punya sesuatu, atau sekadar ingin menyapa, inbox saya terbuka.',
     emailLabel: 'Email',
     copy: 'Salin',

@@ -15,6 +15,7 @@
  *  - github      optional repo URL
  *  - demo        optional live demo URL
  *  - year        number
+ *  - coursework  optional: true for a university assignment (shows a "Coursework" tag)
  *  - status      optional: 'in-progress' adds an "In progress" badge and the
  *                "Currently building" link; it is listed after finished work
  *
@@ -74,6 +75,7 @@ export const projects = [
     tech: ['Python', 'IndoBERT', 'Hugging Face', 'YouTube API'],
     image: '/projects/indobert-hantavirus.webp',
     github: 'https://github.com/nabielyr/IndoBERT-for-Hantavirus-Sentiment-Analysis',
+    coursework: true,
     demo: '',
     year: 2026,
   },
@@ -88,6 +90,7 @@ export const projects = [
     tech: ['Python', 'Pandas', 'Matplotlib', 'Seaborn'],
     image: '/projects/tech-layoffs.webp',
     github: 'https://github.com/nabielyr/Tech-Layoffs-Trend-Analysis',
+    coursework: true,
     demo: '',
     year: 2026,
   },

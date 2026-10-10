@@ -77,6 +77,7 @@ export default function ProjectCard({ project }) {
       <p className={styles.meta}>
         <span className={styles.year}>{project.year}</span>
         <span className={styles.cats}>{cats}</span>
+        {project.coursework && <span className={styles.tag}>{t('projects.coursework')}</span>}
       </p>
       <p className={styles.desc}>{pick(project.description)}</p>
       <p className={styles.tech}>{project.tech.join(' · ')}</p>

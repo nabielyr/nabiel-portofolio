@@ -1,7 +1,6 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import { useLanguage } from '../context/contexts'
-import { useMediaQuery } from '../hooks/useMediaQuery'
 import { profile } from '../data/profile'
 import styles from './Contact.module.css'
 
@@ -19,16 +18,52 @@ function useMalangTime() {
   return time
 }
 
-/** Only create the second WebGL scene once the section is about to be seen */
-function useNearView(el) {
-  const [near, setNear] = useState(false)
+/** Becomes true (once) when `el` comes within `margin` of the viewport */
+function useSeen(el, margin, threshold = 0) {
+  const [seen, setSeen] = useState(false)
   useEffect(() => {
-    if (!el || near) return undefined
-    const io = new IntersectionObserver(([entry]) => entry.isIntersecting && setNear(true), { rootMargin: '400px' })
+    if (!el || seen) return undefined
+    const io = new IntersectionObserver(([entry]) => entry.isIntersecting && setSeen(true), { rootMargin: margin, threshold })
     io.observe(el)
     return () => io.disconnect()
-  }, [el, near])
-  return near
+  }, [el, seen, margin, threshold])
+  return seen
+}
+
+// Big Shoulders Display: the cap line sits this far (in em) below the top of
+// an inline span's box (ascent 0.984 - cap height 0.8125)
+const CAP_GAP = 0.1715
+// the owl's toes rest this many world units above the bottom of its canvas
+const FEET_UNITS = 0.06
+// owl size: pixels per world unit, per pixel of title font size
+const OWL_SCALE = 0.33
+
+/**
+ * Where the contact owl's canvas goes: from just left of the letter it
+ * perches on to the right edge of the page, and from the top of the section
+ * down to that letter's cap line. Measured, so it follows the font size and
+ * wherever the title wraps.
+ */
+function useStage(sectionEl, letterEl) {
+  const [stage, setStage] = useState(null)
+  useLayoutEffect(() => {
+    if (!sectionEl || !letterEl) return undefined
+    const measure = () => {
+      const s = sectionEl.getBoundingClientRect()
+      const l = letterEl.getBoundingClientRect()
+      const fs = parseFloat(getComputedStyle(letterEl).fontSize)
+      const unitPx = Math.max(36, fs * OWL_SCALE)
+      const left = Math.max(0, l.left - s.left + l.width / 2 - unitPx * 1.9)
+      const capLine = l.top - s.top + fs * CAP_GAP
+      setStage({ left, width: s.width - left, height: capLine + FEET_UNITS * unitPx, unitPx })
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(sectionEl)
+    document.fonts?.ready.then(measure)
+    return () => ro.disconnect()
+  }, [sectionEl, letterEl])
+  return stage
 }
 
 const links = profile.socials.filter((s) => s.id !== 'email')
@@ -36,10 +71,17 @@ const links = profile.socials.filter((s) => s.id !== 'email')
 export default function Contact() {
   const { t } = useLanguage()
   const reduceMotion = useReducedMotion()
-  const narrow = useMediaQuery('(max-width: 760px)')
   const time = useMalangTime()
   const [sectionEl, setSectionEl] = useState(null)
-  const near = useNearView(sectionEl)
+  const [letterEl, setLetterEl] = useState(null)
+  // build the scene well before it's needed; start the flight once the title is in view
+  const near = useSeen(sectionEl, '1200px')
+  const titleInView = useSeen(letterEl, '0px 0px -12% 0px', 1)
+  const stage = useStage(sectionEl, letterEl)
+
+  // Hoo lands on one letter with a flat top (set per language)
+  const title = t('contact.title')
+  const at = t('contact.perchAt')
   const [copied, setCopied] = useState(false)
   const copyTimer = useRef(0)
 
@@ -66,25 +108,30 @@ export default function Contact() {
         </p>
 
         <div className={styles.titleWrap}>
-          {/* Hoo stands on the letters; the section feeds it pointer events */}
-          <div className={styles.perch}>
-            {near && sectionEl && (
-              <Suspense fallback={null}>
-                <OwlCanvas
-                  pose="perch"
-                  reduceMotion={reduceMotion}
-                  eventSource={sectionEl}
-                  framing="stage"
-                  unitPx={narrow ? 46 : 84}
-                />
-              </Suspense>
-            )}
-          </div>
           <h2 className={styles.title}>
-            {t('contact.title')}
+            {title.slice(0, at)}
+            <span ref={setLetterEl}>{title[at]}</span>
+            {title.slice(at + 1)}
             <span className={styles.dot} aria-hidden="true" />
           </h2>
         </div>
+
+        {/* Hoo flies in from the right and lands on that letter; the section feeds it pointer events */}
+        {near && stage && (
+          <div className={styles.stage} style={{ left: stage.left, width: stage.width, height: stage.height }}>
+            <Suspense fallback={null}>
+              <OwlCanvas
+                pose="perch"
+                reduceMotion={reduceMotion}
+                eventSource={sectionEl}
+                anchor={letterEl}
+                ready={titleInView}
+                framing="stage"
+                unitPx={stage.unitPx}
+              />
+            </Suspense>
+          </div>
+        )}
 
         <div className={styles.grid}>
           <div>

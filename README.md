@@ -15,7 +15,7 @@ Hi, I'm Nabiel, an Information Systems student at Brawijaya University in Malang
 - **Work.** The projects I've built in one compact grid, with icon links to the code and the live demo, what I built last and what I'm building now.
 - **About, Education and Experience.** A short intro, a few facts, my degree, and my roles at the lab and on campus.
 - **Toolkit.** The core tools I actually reach for, plus one line for everything else.
-- **Contact.** A big "Get in touch" with Hoo standing on the letters, my email (copy in one click), my links and the local time in Malang.
+- **Contact.** A big "Get in touch" that Hoo flies in and lands on, toes curled over the top of the T, my email (copy in one click), my links and the local time in Malang.
 
 It's fully bilingual (English and Bahasa Indonesia) and has both a dark and a light theme.
 

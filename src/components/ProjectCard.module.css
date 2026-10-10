@@ -161,6 +161,15 @@
   color: var(--accent-ink);
 }
 
+/* "Coursework": a quiet outlined tag, so it reads as context rather than a category */
+.tag {
+  padding: 0.12rem 0.45rem;
+  font-size: 0.66rem;
+  color: var(--ink-soft);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-pill);
+}
+
 .desc {
   font-size: var(--fs-sm);
   line-height: 1.55;

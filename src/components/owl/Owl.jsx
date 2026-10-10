@@ -14,13 +14,15 @@ import { EYE, HEAD } from './anatomy'
  * no geometry or texture work.
  *
  * Behaviour:
- * - entrance: flies in diagonally from the top right corner of the page,
- *   glides, flares its wings and lands, then shakes its feathers out
+ * - entrance: flies in from off screen on the right (hero: the top right
+ *   corner), feet hanging, glides, flares its wings and swings its feet
+ *   forward to land. The flight waits until `ready`.
  * - the head turns toward the cursor, like a real owl, and the eyes follow
  * - it breathes, and blinks at random with real eyelids
  * - click: a little hop, a wing flap and a happy squint (^ ^)
  * - double click: a full 360° head turn
- * - pose="perch": waves a wing while hovered
+ * - pose="perch": stands on a letter of the contact title, toes curled over
+ *   its edge, and waves a wing while hovered
  */
 
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v))
@@ -35,7 +37,6 @@ const smooth = (a, b, x) => {
 const LID = { upOpen: -1.42, upClosed: 1.5, upHappy: -0.15, lowOpen: 1.35, lowHappy: 0.45 }
 
 const FLIGHT_S = 2.5 // the entrance flight
-const SETTLE_S = 0.7 // feather shake after landing
 
 /** Shared materials: one instance per surface keeps shader programs and draw state low. */
 function useMaterials() {
@@ -110,27 +111,31 @@ function useBodyProfile() {
 
 function Eye({ side, m, ball, upper, lower }) {
   return (
-    <group position={[side * EYE.x, EYE.y, EYE.z]} rotation={[0, side * 0.5, 0]}>
-      {/* the eyeball turns to look; iris and pupil are painted on a cap of it */}
-      <group ref={ball}>
-        <mesh material={m.eye}>
-          <sphereGeometry args={[EYE.r, 40, 28]} />
+    <group position={[side * EYE.x, EYE.y, EYE.z]} rotation={[0, side * EYE.turn, 0]}>
+      {/* everything inside is squashed into a shallow dome, so the eye sits in
+          the face instead of bulging out; turning inside the squash keeps the
+          iris gliding over the dome's surface */}
+      <group scale={[1, 1, EYE.depth]}>
+        <group ref={ball} rotation={[0, -side * EYE.turn, 0]}>
+          <mesh material={m.eye}>
+            <sphereGeometry args={[EYE.r, 40, 28]} />
+          </mesh>
+          <mesh material={m.iris} rotation={[Math.PI / 2, 0, 0]}>
+            <sphereGeometry args={[EYE.r * 1.012, 40, 10, 0, Math.PI * 2, 0, 0.66]} />
+          </mesh>
+        </group>
+        {/* a catch light that stays put while the eye moves */}
+        <mesh material={m.shine} position={[0.06, 0.07, EYE.r * 0.93]}>
+          <sphereGeometry args={[0.03, 12, 8]} />
         </mesh>
-        <mesh material={m.iris} rotation={[Math.PI / 2, 0, 0]}>
-          <sphereGeometry args={[EYE.r * 1.012, 40, 10, 0, Math.PI * 2, 0, 0.72]} />
+        {/* eyelids: shells just over the eye that roll down to blink */}
+        <mesh ref={upper} material={m.lid} rotation={[LID.upOpen, 0, 0]}>
+          <sphereGeometry args={[EYE.r * 1.08, 36, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        </mesh>
+        <mesh ref={lower} material={m.lid} rotation={[LID.lowOpen, 0, 0]}>
+          <sphereGeometry args={[EYE.r * 1.07, 36, 12, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2]} />
         </mesh>
       </group>
-      {/* a catch light that stays put while the eye moves */}
-      <mesh material={m.shine} position={[0.055, 0.06, EYE.r * 0.95]}>
-        <sphereGeometry args={[0.026, 12, 8]} />
-      </mesh>
-      {/* eyelids: shells just over the eye that roll down to blink */}
-      <mesh ref={upper} material={m.lid} rotation={[LID.upOpen, 0, 0]}>
-        <sphereGeometry args={[EYE.r * 1.07, 36, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
-      </mesh>
-      <mesh ref={lower} material={m.lid} rotation={[LID.lowOpen, 0, 0]}>
-        <sphereGeometry args={[EYE.r * 1.06, 36, 12, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2]} />
-      </mesh>
     </group>
   )
 }
@@ -173,6 +178,10 @@ function Wing({ side, m, wingRef, primaries }) {
 function Foot({ x, m }) {
   return (
     <group position={[x, 0, 0]}>
+      {/* a short feathered leg: hidden in the belly at rest, seen when the feet hang in flight */}
+      <mesh material={m.tuft} position={[0, 0.09, -0.02]} scale={[1, 1, 0.9]}>
+        <capsuleGeometry args={[0.075, 0.1, 4, 12]} />
+      </mesh>
       {[-0.42, 0, 0.42].map((a) => (
         <group key={a} rotation={[0, a, 0]}>
           <mesh material={m.feet} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.07]}>
@@ -188,31 +197,32 @@ function Foot({ x, m }) {
 }
 
 /**
- * The entrance flight path, a cubic Bézier ending on the perch. The hero owl
- * comes in diagonally from beyond the top right corner; the small contact
- * canvas has no room for that, so that one drops in from above.
+ * The entrance flight path, a cubic Bézier ending on the perch. Both canvases
+ * run on to the right edge of the page, so the owl always arrives from off
+ * screen: the hero owl from beyond the top right corner, the contact owl
+ * from the right side, gliding down onto its letter.
  */
 function makeFlight(view, pose) {
   const right = view?.right ?? 3
   const top = view?.top ?? 3.5
-  const diagonal = pose === 'hero'
-  const pts = diagonal
-    ? [
-        [right + 1.3, top + 1.5, 1.2],
-        [right * 0.45 + 0.4, top * 0.55 + 0.9, 1.1],
-        [1.1, 1.5, 0.35],
-      ]
-    : [
-        [0.25, top + 1.4, 0],
-        [0.3, top * 0.6, 0],
-        [0.15, 1.1, 0],
-      ]
+  const pts =
+    pose === 'hero'
+      ? [
+          [right + 1.3, top + 1.5, 1.2],
+          [right * 0.45 + 0.4, top * 0.55 + 0.9, 1.1],
+          [1.1, 1.5, 0.35],
+        ]
+      : [
+          [right + 1.6, Math.max(1.6, top - 2.3), 0.8],
+          [right * 0.5 + 0.4, Math.max(1.6, top - 2), 0.7],
+          [0.9, 1.2, 0.25],
+        ]
   const [p0, p1, p2] = pts.map((p) => new THREE.Vector3(...p))
   const curve = new THREE.CubicBezierCurve3(p0, p1, p2, new THREE.Vector3())
-  return { curve, turn: diagonal ? 1 : 0, pos: new THREE.Vector3(), tan: new THREE.Vector3() }
+  return { curve, pos: new THREE.Vector3(), tan: new THREE.Vector3() }
 }
 
-export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entrance = true, viewRef, ref }) {
+export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entrance = true, ready = true, viewRef, ref }) {
   const root = useRef()
   const tilt = useRef()
   const bodyRef = useRef()
@@ -251,7 +261,6 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entr
     hover: false,
     intro: entrance && !reduceMotion ? 0 : -1, // seconds into the entrance, -1 = done
     flight: null,
-    settle: -1, // seconds into the feather shake after landing
   })
 
   // Let the parent trigger reactions (click / double click / hover)
@@ -301,10 +310,12 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entr
     let heading = 0
     let lean = 0
     let wingOpen = -1 // -1 = wings at rest
-    let feetTuck = 0
+    let hang = 0 // feet hanging down in flight
+    let reach = 0 // feet swung forward to land
     let flying = false
     if (st.intro >= 0) {
-      st.intro += dt
+      // wait off screen until the parent says the owl can be seen
+      if (ready) st.intro += dt
       if (!st.flight) st.flight = makeFlight(viewRef?.current, pose)
       const f = st.flight
       const k = Math.min(1, st.intro / FLIGHT_S)
@@ -318,7 +329,7 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entr
       const land = smooth(0.78, 1, k)
       // lean into the turn, face the way it's flying, then square up to land
       bank = clamp(-f.tan.x * 0.45, -0.4, 0.4) * (1 - land)
-      heading = (-0.75 * f.turn + Math.sin(st.intro * 2.2) * 0.08) * (1 - land)
+      heading = (-0.75 + Math.sin(st.intro * 2.2) * 0.08) * (1 - land)
       lean = 0.32 * (1 - smooth(0.55, 0.8, k)) - 0.42 * smooth(0.72, 0.86, k) * (1 - smooth(0.9, 1, k))
       // flap hard, glide, then flare with big beats just before touching down
       const beat = Math.sin(st.intro * 15)
@@ -326,7 +337,8 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entr
       const flare = smooth(0.74, 0.8, k) * (1 - smooth(0.95, 1, k))
       wingOpen = (1 - glide) * (0.55 + 0.6 * beat) + glide * (1.15 + 0.06 * beat) + flare * 0.35 * Math.sin(st.intro * 19)
       wingOpen *= 1 - smooth(0.93, 1, k)
-      feetTuck = 1 - smooth(0.62, 0.82, k)
+      hang = 1 - smooth(0.66, 0.84, k)
+      reach = smooth(0.7, 0.84, k) * (1 - smooth(0.93, 1, k))
       flying = true
       // watch where it's going, then the cursor once it has landed
       tx = tx * land - 0.15 * (1 - land)
@@ -334,8 +346,7 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entr
       if (k >= 1) {
         st.intro = -1
         st.squash = 1
-        st.settle = 0
-        st.happy = 0.8
+        st.happy = 0.6
       }
     }
 
@@ -358,9 +369,13 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entr
     // the eyeballs turn a little further than the head does
     const ex = clamp(tx * 0.32, -0.32, 0.32)
     const ey = clamp(ty * 0.22, -0.22, 0.16)
-    for (const b of [ballL.current, ballR.current]) {
+    // each eye first undoes its outward turn, so both aim at the same point
+    for (const [b, side] of [
+      [ballL.current, -1],
+      [ballR.current, 1],
+    ]) {
       if (!b) continue
-      b.rotation.y = damp(b.rotation.y, ex, 12, dt)
+      b.rotation.y = damp(b.rotation.y, ex - side * EYE.turn, 12, dt)
       b.rotation.x = damp(b.rotation.x, ey, 12, dt)
     }
 
@@ -400,15 +415,6 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entr
     st.squash = damp(st.squash, 0, 9, dt)
     st.flap = damp(st.flap, 0, 2.2, dt)
 
-    // ---- the feather shake after landing ----
-    let shake = 0
-    if (st.settle >= 0) {
-      st.settle += dt
-      const k = st.settle / SETTLE_S
-      shake = Math.sin(st.settle * 42) * 0.07 * (1 - k) * smooth(0, 0.15, k)
-      if (k >= 1) st.settle = -1
-    }
-
     const breathe = reduceMotion ? 0 : Math.sin(t * 2.1) * 0.012
     const height = st.hopY + pos[1]
     if (shadow.current) {
@@ -421,7 +427,7 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entr
       root.current.rotation.y = st.yaw * 0.18 * (flying ? 0 : 1) + heading
     }
     if (tilt.current) {
-      tilt.current.rotation.z = bank + shake
+      tilt.current.rotation.z = bank
       tilt.current.rotation.x = lean
     }
     if (bodyRef.current) {
@@ -430,8 +436,11 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entr
       bodyRef.current.rotation.z = reduceMotion ? 0 : Math.sin(t * 0.7) * 0.025
     }
     if (feet.current) {
-      feet.current.position.y = -0.98 + feetTuck * 0.12
-      feet.current.rotation.x = -feetTuck * 0.7
+      // in flight the feet hang down and swing forward to land; on the contact
+      // letters the toes curl over the edge, gripping it
+      const grip = pose === 'perch' && !flying ? 0.75 : 0
+      feet.current.position.y = -0.98 - hang * 0.09
+      feet.current.rotation.x = hang * 0.85 - reach * 0.45 + grip
     }
 
     // ---- wings ----
@@ -439,7 +448,7 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entr
     if (wingOpen >= 0) {
       open = wingOpen
     } else {
-      const flapPower = st.flap * 0.9 + Math.abs(shake) * 4
+      const flapPower = st.flap * 0.9
       open = flapPower > 0.02 ? Math.abs(Math.sin(t * 22)) * flapPower : 0
     }
     let waveR = 0
@@ -467,7 +476,8 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entr
 
   return (
     <>
-      <mesh ref={shadow} material={m.shadow} position={[0, -1.045, 0.02]} rotation={[-Math.PI / 2, 0, 0]} scale={[1.55, 1.05, 1]}>
+      {/* on the contact title the letter is the ground; a shadow there would float */}
+      <mesh ref={shadow} visible={pose === 'hero'} material={m.shadow} position={[0, -1.045, 0.02]} rotation={[-Math.PI / 2, 0, 0]} scale={[1.55, 1.05, 1]}>
         <planeGeometry args={[1, 1]} />
       </mesh>
 

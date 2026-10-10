@@ -107,7 +107,7 @@ function usePointer() {
   return pointer
 }
 
-function OwlCanvas({ pose = 'hero', onHoot, reduceMotion = false, eventSource, anchor = null, framing = 'fit', unitPx = 160, className = '' }) {
+function OwlCanvas({ pose = 'hero', onHoot, reduceMotion = false, eventSource, anchor = null, ready = true, framing = 'fit', unitPx = 160, className = '' }) {
   const wrap = useRef(null)
   const owl = useRef(null)
   const view = useRef(null)
@@ -203,7 +203,7 @@ function OwlCanvas({ pose = 'hero', onHoot, reduceMotion = false, eventSource, a
           onPointerOver={() => setHover(true)}
           onPointerOut={() => setHover(false)}
         >
-          <Owl ref={owl} pose={pose} pointer={pointer} reduceMotion={reduceMotion} viewRef={view} />
+          <Owl ref={owl} pose={pose} pointer={pointer} reduceMotion={reduceMotion} ready={ready} viewRef={view} />
         </group>
         <AdaptiveDpr />
       </Canvas>
