@@ -3,8 +3,17 @@
   --tile-w: 32px;
   --tile-h: 46px;
   --tile-gap: 5px;
-  --board-pad: 10px;
-  --board: #0c1529;
+  --board-pad: 13px;
+  --rail: 5px;
+  /* the housing */
+  --frame-a: #24375f;
+  --frame-b: #1a2a4c;
+  --frame-c: #142240;
+  --slot: #0c1630;
+  --rail-top: #2c4271;
+  --rail-bottom: #101c37;
+  --rivet: #5d71a0;
+  --board: var(--frame-b);
   --tile-top-a: #2a3e68;
   --tile-top-b: #1f3058;
   --tile-bottom-a: #1a2a4e;
@@ -18,7 +27,14 @@
 }
 
 [data-theme='dark'] .ticker {
-  --board: #070e1d;
+  --frame-a: #1c2c51;
+  --frame-b: #14223f;
+  --frame-c: #0e1830;
+  --slot: #080f20;
+  --rail-top: #23365f;
+  --rail-bottom: #0b1428;
+  --rivet: #4c6090;
+  --board: var(--frame-b);
   --tile-top-a: #2c4170;
   --tile-top-b: #22355f;
   --tile-bottom-a: #1d2e55;
@@ -35,6 +51,7 @@
     --tile-w: 23px;
     --tile-h: 34px;
     --tile-gap: 3px;
-    --board-pad: 7px;
+    --board-pad: 10px;
+    --rail: 4px;
   }
 }

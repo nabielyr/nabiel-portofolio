@@ -62,8 +62,24 @@ export default function FlapTicker({ items, label, instant = false }) {
         return g
       }
       // gradients live in tile-local space (origin on the hinge), so one set serves every tile
+      const { height, rail } = d
+      const frame = ctx.createLinearGradient(0, 0, 0, height)
+      frame.addColorStop(0, v('--frame-a'))
+      frame.addColorStop(0.5, v('--frame-b'))
+      frame.addColorStop(1, v('--frame-c'))
+      // inner shadow at the top and bottom of the recessed slot
+      const slotShade = ctx.createLinearGradient(0, rail, 0, height - rail)
+      slotShade.addColorStop(0, 'rgba(0, 0, 0, 0.45)')
+      slotShade.addColorStop(0.12, 'rgba(0, 0, 0, 0)')
+      slotShade.addColorStop(0.88, 'rgba(0, 0, 0, 0)')
+      slotShade.addColorStop(1, 'rgba(0, 0, 0, 0.35)')
       d.paint = {
-        housing: v('--board'),
+        frame,
+        slot: v('--slot'),
+        slotShade,
+        railTop: v('--rail-top'),
+        railBottom: v('--rail-bottom'),
+        rivet: v('--rivet'),
         top: grad(-mid, 0, v('--tile-top-a'), v('--tile-top-b')),
         bottom: grad(0, mid, v('--tile-bottom-a'), v('--tile-bottom-b')),
         ink: v('--tile-ink'),
@@ -79,6 +95,7 @@ export default function FlapTicker({ items, label, instant = false }) {
       const h = num('--tile-h')
       const gap = num('--tile-gap')
       const pad = num('--board-pad')
+      const rail = num('--rail')
       const dpr = Math.min(window.devicePixelRatio || 1, 2)
       const width = el.clientWidth
       const height = h + pad * 2
@@ -87,7 +104,7 @@ export default function FlapTicker({ items, label, instant = false }) {
       canvas.style.height = `${height}px`
       const count = Math.ceil(width / (w + gap)) + 1
       d = {
-        w, h, gap, pad, dpr, width, height, count,
+        w, h, gap, pad, rail, dpr, width, height, count,
         r: Math.max(3, w * 0.13),
         font: `800 ${Math.round(h * 0.6)}px "Big Shoulders Display", "Arial Narrow", sans-serif`,
       }
@@ -153,11 +170,54 @@ export default function FlapTicker({ items, label, instant = false }) {
       ctx.fillRect(x + w - pw * 0.65, y + h / 2 - ph / 2, pw, ph)
     }
 
-    const draw = (now) => {
-      const { w, gap, pad, dpr, width, height, font } = d
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-      ctx.fillStyle = d.paint.housing
+    // The board itself: a navy frame with lighter rails, rivets and a recessed slot
+    const housing = () => {
+      const { width, height, rail } = d
+      const p = d.paint
+      ctx.fillStyle = p.frame
       ctx.fillRect(0, 0, width, height)
+      // recessed slot the tiles sit in
+      const slotY = rail + 2
+      const slotH = height - rail * 2 - 4
+      ctx.fillStyle = p.slot
+      ctx.fillRect(0, slotY, width, slotH)
+      ctx.fillStyle = p.slotShade
+      ctx.fillRect(0, slotY, width, slotH)
+      // rails with a catch of light on their edges
+      ctx.fillStyle = p.railTop
+      ctx.fillRect(0, 0, width, rail)
+      ctx.fillStyle = p.railBottom
+      ctx.fillRect(0, height - rail, width, rail)
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.14)'
+      ctx.fillRect(0, 0, width, 1)
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.06)'
+      ctx.fillRect(0, height - rail, width, 1)
+      // rivets along both rails
+      for (let x = 24; x < width; x += 112) {
+        for (const y of [rail / 2, height - rail / 2]) {
+          ctx.fillStyle = p.rivet
+          ctx.beginPath()
+          ctx.arc(x, y, 1.6, 0, Math.PI * 2)
+          ctx.fill()
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.35)'
+          ctx.fillRect(x - 0.8, y - 1.1, 0.9, 0.9)
+        }
+      }
+    }
+
+    const shadowUnder = (x, y) => {
+      const { w, h, r } = d
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.38)'
+      ctx.beginPath()
+      if (ctx.roundRect) ctx.roundRect(x + 1, y + 2.5, w, h, r)
+      else ctx.rect(x + 1, y + 2.5, w, h)
+      ctx.fill()
+    }
+
+    const draw = (now) => {
+      const { w, gap, pad, dpr, font } = d
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      housing()
       ctx.font = font
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
@@ -167,6 +227,7 @@ export default function FlapTicker({ items, label, instant = false }) {
         const tile = tiles[i]
         const x = i * (w + gap) + gap / 2
         const t = (now - tile.start) / FLIP_MS
+        shadowUnder(x, y)
         if (t >= 2 || tile.prev === tile.cur) {
           half(x, y, tile.cur, true)
           half(x, y, tile.cur, false)
