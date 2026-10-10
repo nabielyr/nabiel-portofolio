@@ -179,7 +179,7 @@ function OwlCanvas({
     // first time each shader is used (a 10-25ms stall each on Windows/ANGLE).
     // Keep them for development only.
     gl.debug.checkShaderErrors = import.meta.env.DEV
-    // Upload the painted textures one per frame, then compile the shaders off
+    // Upload the painted textures a few per frame, then compile the shaders off
     // the main thread, all before the owl is shown: done on its first frame,
     // the uploads stall the GPU process and every shader link waits on them.
     const textures = new Set()
@@ -189,9 +189,11 @@ function OwlCanvas({
     })
     const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve))
     const warmUp = async () => {
+      let n = 0
       for (const t of textures) {
         gl.initTexture(t)
-        await nextFrame()
+        n += 1
+        if (n % 3 === 0) await nextFrame() // three small uploads a frame
       }
       await gl.compileAsync?.(scene, camera)
     }

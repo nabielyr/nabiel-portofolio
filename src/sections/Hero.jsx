@@ -11,8 +11,13 @@ import styles from './Hero.module.css'
 // Start fetching the owl's code and painting its feathers (in a worker) right away
 const loadOwl = () => import('../components/owl/OwlCanvas')
 const OwlCanvas = lazy(loadOwl)
+let owlPrep = null
+const prepareOwl = () =>
+  (owlPrep ??= Promise.all([loadOwl(), import('../components/owl/plumage').then((m) => m.preparePlumage())]).catch(() => {}))
 
-const NAME_RISE_MS = 1000 // matches the .word animation in Hero.module.css
+// The name's rise is ease-out: by this point it has nearly settled, so the
+// owl's WebGL set-up can start without it being noticed
+const NAME_SETTLED_MS = 550
 
 /**
  * The name waits for its font, so it never swaps typeface halfway through
@@ -35,21 +40,20 @@ function useFontReady() {
 }
 
 /**
- * Mount the 3D owl as soon as the name has finished rising (the WebGL set-up
- * would otherwise compete with it for the GPU), with its code and textures
- * prepared in the meantime.
+ * Mount the 3D owl once the name has nearly settled (the WebGL set-up would
+ * otherwise compete with its rise for the GPU). Its code and textures start
+ * loading the moment the page does, so they're ready by then.
  */
 function useOwlMount(started) {
   const [ready, setReady] = useState(false)
   useEffect(() => {
+    prepareOwl()
+  }, [])
+  useEffect(() => {
     if (!started) return undefined
     let alive = true
-    const prep = Promise.all([
-      loadOwl(),
-      import('../components/owl/plumage').then((m) => m.preparePlumage()),
-    ]).catch(() => {})
-    const wait = new Promise((resolve) => setTimeout(resolve, NAME_RISE_MS - 60))
-    Promise.all([prep, wait]).then(() => alive && setReady(true))
+    const wait = new Promise((resolve) => setTimeout(resolve, NAME_SETTLED_MS))
+    Promise.all([prepareOwl(), wait]).then(() => alive && setReady(true))
     return () => {
       alive = false
     }

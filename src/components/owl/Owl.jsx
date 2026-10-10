@@ -50,10 +50,10 @@ const JAW = { y: 0.835, z: 0.685, tilt: 0.35 }
 
 const FLIGHT_S = 2 // the hero entrance flight
 const PERCH_FLIGHT_S = 1.7 // the contact owl's shorter hop over
-const AWAKE_S = 7 // daytime: how long it stays up after landing before nodding off
-const AWAKE_AFTER_CLICK_S = 8 // ...after being woken by a click
-const AWAKE_AFTER_FOOD_S = 10 // ...after a treat
-const DROWSY_S = 3.4 // heavy eyelids, a yawn and a nod before it's asleep
+const AWAKE_S = 4.5 // daytime: how long it stays up after landing before nodding off
+const AWAKE_AFTER_CLICK_S = 6 // ...after being woken by a click
+const AWAKE_AFTER_FOOD_S = 8 // ...after a treat
+const DROWSY_S = 3 // heavy eyelids, a yawn and a nod before it's asleep
 const EAT_S = 1.3
 
 /** Shared materials: one instance per surface keeps shader programs and draw state low. */
@@ -232,12 +232,12 @@ function makeFlight(view, pose) {
   const pts =
     pose === 'hero'
       ? [
-          [right + 1.3, top + 1.5, 1.2],
+          [right + 0.9, top + 1.0, 1.2],
           [right * 0.45 + 0.4, top * 0.55 + 0.9, 1.1],
           [1.1, 1.5, 0.35],
         ]
       : [
-          [right + 1.6, Math.max(1.6, top - 2.3), 0.8],
+          [right + 1.0, Math.max(1.6, top - 2.3), 0.8],
           [right * 0.5 + 0.4, Math.max(1.6, top - 2), 0.7],
           [0.9, 1.2, 0.25],
         ]
@@ -572,10 +572,11 @@ export default function Owl({
     const lowAngle = THREE.MathUtils.lerp(THREE.MathUtils.lerp(LID.lowOpen, LID.lowHappy, happy), LID.shut, shut)
     for (const lid of [upL.current, upR.current]) if (lid) lid.rotation.x = upAngle
     for (const lid of [lowL.current, lowR.current]) if (lid) lid.rotation.x = lowAngle
-    // the catch light would poke through a closed lid, and the iris has no
-    // business showing once the eyes are nearly shut
+    // the catch light would poke through a closed lid; the iris is hidden only
+    // once the lids have fully met (any earlier and a white eye without a
+    // pupil peeks out between them)
     for (const sh of [shineL.current, shineR.current]) if (sh) sh.visible = shut < 0.45
-    for (const ir of [irisL.current, irisR.current]) if (ir) ir.visible = shut < 0.8
+    for (const ir of [irisL.current, irisR.current]) if (ir) ir.visible = shut < 0.985
 
     // ---- beak: open for a treat, chewing, yawning ----
     const mouthTarget = Math.max(chew, st.want ? 0.6 : 0, yawn)

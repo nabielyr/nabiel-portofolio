@@ -30,6 +30,23 @@ function useSeen(el, margin, threshold = 0) {
   return seen
 }
 
+/** Becomes true once the page has been open `ms` and the browser is idle */
+function useIdleAfter(ms) {
+  const [done, setDone] = useState(false)
+  useEffect(() => {
+    let idleId = 0
+    const timer = setTimeout(() => {
+      if ('requestIdleCallback' in window) idleId = window.requestIdleCallback(() => setDone(true), { timeout: 2000 })
+      else setDone(true)
+    }, ms)
+    return () => {
+      clearTimeout(timer)
+      if (idleId) window.cancelIdleCallback(idleId)
+    }
+  }, [ms])
+  return done
+}
+
 // Big Shoulders Display: the cap line sits this far (in em) below the top of
 // an inline span's box (ascent 0.984 - cap height 0.8125)
 const CAP_GAP = 0.1715
@@ -74,9 +91,12 @@ export default function Contact() {
   const time = useMalangTime()
   const [sectionEl, setSectionEl] = useState(null)
   const [letterEl, setLetterEl] = useState(null)
-  // build the scene well before it's needed; start the flight once the title is in view
-  const near = useSeen(sectionEl, '1200px')
-  const titleInView = useSeen(letterEl, '0px 0px -25% 0px')
+  // Build the scene well before it's needed: when the section is within a few
+  // screens, or quietly once the hero owl has settled. Start the flight as
+  // soon as the title comes up into view.
+  const near = useSeen(sectionEl, '3000px')
+  const idle = useIdleAfter(9000)
+  const titleInView = useSeen(letterEl, '0px 0px -10% 0px')
   const stage = useStage(sectionEl, letterEl)
 
   // Hoo lands on one letter with a flat top (set per language)
@@ -117,7 +137,7 @@ export default function Contact() {
         </div>
 
         {/* Hoo flies in from the right and lands on that letter; the section feeds it pointer events */}
-        {near && stage && (
+        {(near || idle) && stage && (
           <div className={styles.stage} style={{ left: stage.left, width: stage.width, height: stage.height }}>
             <Suspense fallback={null}>
               <OwlCanvas
