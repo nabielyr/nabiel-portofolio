@@ -76,7 +76,7 @@ export default function Contact() {
   const [letterEl, setLetterEl] = useState(null)
   // build the scene well before it's needed; start the flight once the title is in view
   const near = useSeen(sectionEl, '1200px')
-  const titleInView = useSeen(letterEl, '0px 0px -12% 0px', 1)
+  const titleInView = useSeen(letterEl, '0px 0px -25% 0px')
   const stage = useStage(sectionEl, letterEl)
 
   // Hoo lands on one letter with a flat top (set per language)

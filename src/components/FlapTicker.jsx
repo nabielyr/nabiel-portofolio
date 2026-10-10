@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import styles from './FlapTicker.module.css'
 
-const STEP_MS = 280 // how often the text moves one tile to the left
+const STEP_MS = 340 // how often the text moves one tile to the left
 const FLIP_MS = 95 // each half of a flip
 const WAVE_MS = 4 // tiny delay from tile to tile so a step rolls like a wave
 const RESUME_MS = 500 // pause after the pointer leaves before the board moves on
@@ -48,7 +48,9 @@ export default function FlapTicker({ items, label, dragLabel, instant = false })
   useEffect(() => {
     const el = wrap.current
     const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')
+    // a CPU canvas: on the GPU its first draws compiled Skia shaders and stalled
+    // the compositor right as the hero name started rising
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })
     let tiles = [] // { cur, prev, start } where cur/prev are cells
     let d = null // dimensions + paints
     let raf = 0

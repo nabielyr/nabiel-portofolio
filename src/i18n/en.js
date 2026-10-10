@@ -24,6 +24,10 @@ const en = {
     ctaWork: 'See my work',
     ctaCv: 'Download CV',
     hoots: ['Hoo!', 'Hoo hoo!', 'Hi there!', 'Need an intern?', 'Still here.'],
+    wakes: ["Huh? I wasn't asleep!", 'Five more minutes...', 'Oh, hi.', 'Hoo? Morning already?'],
+    noms: ['Nom nom!', 'Yum!', 'Crunchy!', 'More please!', 'Mmm, cookie.'],
+    treat: 'Give Hoo a cookie',
+    treatHint: 'Feed Hoo',
     owlLabel: 'A little navy owl. Click it.',
   },
   ticker: {

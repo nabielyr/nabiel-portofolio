@@ -1,5 +1,6 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { useTheme } from '../../context/contexts'
 import Owl from './Owl'
 import Books from './Books'
 import styles from './OwlCanvas.module.css'
@@ -107,13 +108,53 @@ function usePointer() {
   return pointer
 }
 
-function OwlCanvas({ pose = 'hero', onHoot, reduceMotion = false, eventSource, anchor = null, ready = true, framing = 'fit', unitPx = 160, className = '' }) {
+/**
+ * The owl's canvas. `apiRef` (optional) gets { mouthOnPage(), anticipate(v),
+ * eat() } so the page can feed it; `onHoot(kind)` fires on a click, with
+ * kind 'wake' when the click woke it up.
+ */
+function OwlCanvas({
+  pose = 'hero',
+  onHoot,
+  apiRef,
+  reduceMotion = false,
+  eventSource,
+  anchor = null,
+  ready = true,
+  framing = 'fit',
+  unitPx = 160,
+  className = '',
+}) {
   const wrap = useRef(null)
   const owl = useRef(null)
   const view = useRef(null)
+  const anchors = useRef(null)
+  const zzz = useRef(null)
   const pointer = usePointer()
   const [warm, setWarm] = useState(false)
   const [inView, setInView] = useState(true)
+  const [asleep, setAsleep] = useState(false)
+  // owls are night birds: awake in the dark theme, sleepy in the light one
+  const night = useTheme().theme === 'dark'
+
+  // What the page can do with the owl (feeding)
+  useEffect(() => {
+    if (!apiRef) return undefined
+    apiRef.current = {
+      mouthOnPage() {
+        const canvas = wrap.current?.querySelector('canvas')
+        const a = anchors.current
+        if (!canvas || !a) return null
+        const r = canvas.getBoundingClientRect()
+        return { x: r.left + (a.mouth.x / a.size.width) * r.width, y: r.top + (a.mouth.y / a.size.height) * r.height }
+      },
+      anticipate: (v) => owl.current?.anticipate(v),
+      eat: () => owl.current?.eat(),
+    }
+    return () => {
+      apiRef.current = null
+    }
+  }, [apiRef])
 
   // Pause rendering while the owl is off screen
   useEffect(() => {
@@ -193,8 +234,8 @@ function OwlCanvas({ pose = 'hero', onHoot, reduceMotion = false, eventSource, a
         <group
           onClick={(e) => {
             e.stopPropagation()
-            owl.current?.hop()
-            onHoot?.()
+            const woke = owl.current?.hop()
+            onHoot?.(woke ? 'wake' : 'hoot')
           }}
           onDoubleClick={(e) => {
             e.stopPropagation()
@@ -203,10 +244,29 @@ function OwlCanvas({ pose = 'hero', onHoot, reduceMotion = false, eventSource, a
           onPointerOver={() => setHover(true)}
           onPointerOut={() => setHover(false)}
         >
-          <Owl ref={owl} pose={pose} pointer={pointer} reduceMotion={reduceMotion} ready={ready} viewRef={view} />
+          <Owl
+            ref={owl}
+            pose={pose}
+            pointer={pointer}
+            reduceMotion={reduceMotion}
+            ready={ready}
+            night={night}
+            viewRef={view}
+            anchorsRef={anchors}
+            zzzRef={zzz}
+            onSleepChange={setAsleep}
+          />
         </group>
         <AdaptiveDpr />
       </Canvas>
+      {/* floating "z"s while it sleeps; Owl moves this to the top of its head every frame */}
+      {asleep && (
+        <div ref={zzz} className={styles.zzz} aria-hidden="true">
+          <span>z</span>
+          <span>z</span>
+          <span>Z</span>
+        </div>
+      )}
     </div>
   )
 }

@@ -14,6 +14,10 @@ import { EYE, HEAD } from './anatomy'
  * no geometry or texture work.
  *
  * Behaviour:
+ * - daytime (light theme): after a while it gets drowsy (heavy eyelids, a
+ *   yawn, a nod) and falls asleep, and stops watching the cursor; a click or
+ *   a treat wakes it for a few seconds. At night (dark theme) it stays awake.
+ * - food: a treat held close makes it open its beak; fed, it chews and hops
  * - entrance: flies in from off screen on the right (hero: the top right
  *   corner), feet hanging, glides, flares its wings and swings its feet
  *   forward to land. The flight waits until `ready`.
@@ -33,10 +37,21 @@ const smooth = (a, b, x) => {
   return t * t * (3 - 2 * t)
 }
 
-// Upper/lower eyelid angles (radians around the eye's x axis)
-const LID = { upOpen: -1.42, upClosed: 1.5, upHappy: -0.15, lowOpen: 1.35, lowHappy: 0.45 }
+// Upper/lower eyelid angles (radians around the eye's x axis). Shut, both
+// lids roll to the same angle and meet a third of the way up the eye, so the
+// lash line draws the curve of a closed eye.
+const LID = { upOpen: -1.42, upKeen: -1.58, upHappy: -1.0, lowOpen: 1.35, lowHappy: 0.85, shut: 0.45 }
 
-const FLIGHT_S = 2.5 // the entrance flight
+// The lower beak's hinge (head space): closed it hides behind the upper beak
+const JAW = { y: 0.835, z: 0.685, tilt: 0.35 }
+
+const FLIGHT_S = 2 // the hero entrance flight
+const PERCH_FLIGHT_S = 1.7 // the contact owl's shorter hop over
+const AWAKE_S = 7 // daytime: how long it stays up after landing before nodding off
+const AWAKE_AFTER_CLICK_S = 8 // ...after being woken by a click
+const AWAKE_AFTER_FOOD_S = 10 // ...after a treat
+const DROWSY_S = 3.4 // heavy eyelids, a yawn and a nod before it's asleep
+const EAT_S = 1.3
 
 /** Shared materials: one instance per surface keeps shader programs and draw state low. */
 function useMaterials() {
@@ -67,9 +82,11 @@ function useMaterials() {
         polygonOffsetFactor: -2,
       }),
       shine: new THREE.MeshBasicMaterial({ color: '#ffffff' }),
-      beak: new THREE.MeshPhysicalMaterial({ color: PALETTE.orange, roughness: 0.38, clearcoat: 0.6, clearcoatRoughness: 0.2 }),
+      lash: new THREE.MeshStandardMaterial({ color: '#0d1630', roughness: 0.8 }),
+      beak: new THREE.MeshStandardMaterial({ color: PALETTE.orange, roughness: 0.4 }),
+      mouth: new THREE.MeshStandardMaterial({ color: '#4a1a10', roughness: 0.7 }),
       cere: plush({ color: PALETTE.faceDeep }),
-      feet: new THREE.MeshPhysicalMaterial({ color: '#ef7a32', roughness: 0.55, clearcoat: 0.3 }),
+      feet: new THREE.MeshStandardMaterial({ color: '#ef7a32', roughness: 0.55 }),
       claw: new THREE.MeshStandardMaterial({ color: '#2a2320', roughness: 0.35 }),
       knitRing: new THREE.MeshStandardMaterial({ ...ring, bumpScale: 3, roughness: 0.95 }),
       knitTail: new THREE.MeshStandardMaterial({ ...tail, bumpScale: 3, roughness: 0.95 }),
@@ -109,7 +126,7 @@ function useBodyProfile() {
   }, [])
 }
 
-function Eye({ side, m, ball, upper, lower }) {
+function Eye({ side, m, ball, upper, lower, shine }) {
   return (
     <group position={[side * EYE.x, EYE.y, EYE.z]} rotation={[0, side * EYE.turn, 0]}>
       {/* everything inside is squashed into a shallow dome, so the eye sits in
@@ -125,12 +142,16 @@ function Eye({ side, m, ball, upper, lower }) {
           </mesh>
         </group>
         {/* a catch light that stays put while the eye moves */}
-        <mesh material={m.shine} position={[0.06, 0.07, EYE.r * 0.93]}>
-          <sphereGeometry args={[0.03, 12, 8]} />
+        <mesh ref={shine} material={m.shine} position={[0.06, 0.07, EYE.r * 0.9]}>
+          <sphereGeometry args={[0.028, 12, 8]} />
         </mesh>
         {/* eyelids: shells just over the eye that roll down to blink */}
         <mesh ref={upper} material={m.lid} rotation={[LID.upOpen, 0, 0]}>
           <sphereGeometry args={[EYE.r * 1.08, 36, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
+          {/* a dark lash line along the lid's edge: a crease when open, a closed eye when shut */}
+          <mesh material={m.lash} rotation={[Math.PI / 2, 0, 0]}>
+            <torusGeometry args={[EYE.r * 1.08, 0.011, 6, 40]} />
+          </mesh>
         </mesh>
         <mesh ref={lower} material={m.lid} rotation={[LID.lowOpen, 0, 0]}>
           <sphereGeometry args={[EYE.r * 1.07, 36, 12, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2]} />
@@ -222,7 +243,19 @@ function makeFlight(view, pose) {
   return { curve, pos: new THREE.Vector3(), tan: new THREE.Vector3() }
 }
 
-export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entrance = true, ready = true, viewRef, ref }) {
+export default function Owl({
+  pose = 'hero',
+  pointer,
+  reduceMotion = false,
+  entrance = true,
+  ready = true,
+  night = false,
+  viewRef,
+  anchorsRef,
+  zzzRef,
+  onSleepChange,
+  ref,
+}) {
   const root = useRef()
   const tilt = useRef()
   const bodyRef = useRef()
@@ -239,7 +272,12 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entr
   const upR = useRef()
   const lowL = useRef()
   const lowR = useRef()
+  const shineL = useRef()
+  const shineR = useRef()
+  const jaw = useRef()
+  const mouthIn = useRef()
   const shadow = useRef()
+  const tmp = useMemo(() => new THREE.Vector3(), [])
 
   const m = useMaterials()
   const profile = useBodyProfile()
@@ -251,7 +289,8 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entr
     pitch: 0,
     hopY: 0,
     hopV: 0,
-    squash: 0,
+    dipY: 0, // knees giving a little on landing (a spring, not a squash)
+    dipV: 0,
     flap: 0,
     happy: 0, // 0..1, the (^ ^) squint after a click
     spin: -1, // seconds into a head spin, -1 = not spinning
@@ -261,23 +300,73 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entr
     hover: false,
     intro: entrance && !reduceMotion ? 0 : -1, // seconds into the entrance, -1 = done
     flight: null,
+    // sleep (day only: owls are night birds)
+    phase: 'awake', // 'awake' | 'drowsy' | 'asleep'
+    awakeLeft: AWAKE_S,
+    drowsyT: 0,
+    sleep: 0, // how closed the eyes are and how far the head has dropped, 0..1
+    // food
+    want: false, // a treat is close: beak open, eyes wide
+    eatT: -1, // seconds into eating, -1 = not eating
+    mouth: 0,
   })
 
-  // Let the parent trigger reactions (click / double click / hover)
+  const setPhase = (phase) => {
+    const st = s.current
+    if (st.phase === phase) return
+    const wasAsleep = st.phase === 'asleep'
+    st.phase = phase
+    if (phase === 'asleep') onSleepChange?.(true)
+    else if (wasAsleep) onSleepChange?.(false)
+  }
+
+  /** Wake up (or stay up) for `seconds`; a startled little hop if it was asleep */
+  const wake = (seconds) => {
+    const st = s.current
+    const wasSleeping = st.phase !== 'awake'
+    st.awakeLeft = Math.max(st.awakeLeft, seconds)
+    setPhase('awake')
+    if (wasSleeping && st.phase === 'awake' && st.hopY <= 0.02 && st.intro < 0) {
+      st.hopV = 1.6
+      st.blinkT = 0 // a double take
+    }
+    return wasSleeping
+  }
+
+  // Let the parent trigger reactions (click / double click / hover / food)
   useImperativeHandle(ref, () => ({
+    /** returns true when the click woke it up */
     hop() {
       const st = s.current
-      if (st.intro >= 0) return
+      if (st.intro >= 0) return false
+      if (st.phase !== 'awake') return wake(AWAKE_AFTER_CLICK_S)
+      wake(AWAKE_AFTER_CLICK_S)
       st.happy = 1
-      if (st.hopY > 0.02) return
+      if (st.hopY > 0.02) return false
       st.hopV = 3.1
       st.flap = 1
+      return false
     },
     spin() {
-      if (s.current.spin < 0 && s.current.intro < 0) s.current.spin = 0
+      const st = s.current
+      if (st.spin < 0 && st.intro < 0 && st.phase === 'awake') st.spin = 0
     },
     setHover(v) {
       s.current.hover = v
+    },
+    /** a treat is being held near: open up and look keen */
+    anticipate(v) {
+      const st = s.current
+      st.want = v
+      if (v && st.intro < 0) wake(AWAKE_AFTER_CLICK_S)
+    },
+    eat() {
+      const st = s.current
+      if (st.intro >= 0) return
+      wake(AWAKE_AFTER_FOOD_S)
+      st.want = false
+      st.eatT = 0
+      st.happy = 1
     },
   }))
 
@@ -304,7 +393,7 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entr
       ty = Math.sin(t * 0.27 + 1) * 0.2
     }
 
-    // ---- entrance: a diagonal flight in from the top right ----
+    // ---- entrance: flies in from off screen ----
     const pos = [0, 0, 0]
     let bank = 0
     let heading = 0
@@ -318,7 +407,7 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entr
       if (ready) st.intro += dt
       if (!st.flight) st.flight = makeFlight(viewRef?.current, pose)
       const f = st.flight
-      const k = Math.min(1, st.intro / FLIGHT_S)
+      const k = Math.min(1, st.intro / (pose === 'hero' ? FLIGHT_S : PERCH_FLIGHT_S))
       // quick to arrive, slow to settle: the speed drops off toward the perch
       const u = 1 - Math.pow(1 - k, 2.3)
       f.curve.getPoint(u, f.pos)
@@ -345,13 +434,57 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entr
       ty = ty * land + 0.35 * (1 - land)
       if (k >= 1) {
         st.intro = -1
-        st.squash = 1
+        st.dipV = -0.75
         st.happy = 0.6
+        st.awakeLeft = AWAKE_S
       }
     }
 
-    st.yaw = damp(st.yaw, tx * 0.85, flying ? 3 : 6, dt)
-    st.pitch = damp(st.pitch, ty * 0.38, 6, dt)
+    // ---- awake, drowsy, asleep ----
+    const busy = st.want || st.eatT >= 0 || st.spin >= 0 || st.hopY > 0
+    if (!flying) {
+      if (night) {
+        // nocturnal: wide awake all night
+        if (st.phase !== 'awake') wake(AWAKE_S)
+        st.awakeLeft = AWAKE_S
+      } else if (st.phase === 'awake' && !busy && !reduceMotion) {
+        st.awakeLeft -= dt
+        if (st.awakeLeft <= 0) {
+          st.drowsyT = 0
+          setPhase('drowsy')
+        }
+      } else if (st.phase === 'drowsy') {
+        st.drowsyT += dt
+        if (st.drowsyT >= DROWSY_S) setPhase('asleep')
+      }
+    }
+    // how sleepy it looks: drowsy is a fight against heavy eyelids, with a yawn and a nod
+    let sleepTarget = 0
+    let nod = 0
+    let yawn = 0
+    if (st.phase === 'drowsy') {
+      const k = st.drowsyT / DROWSY_S
+      sleepTarget = smooth(0, 1, k) * 0.85 + 0.15 * smooth(0.85, 1, k)
+      sleepTarget = Math.min(1, sleepTarget + 0.35 * Math.pow(Math.sin(k * Math.PI * 2.5), 2) * (1 - k))
+      yawn = Math.sin(clamp((k - 0.12) / 0.26, 0, 1) * Math.PI)
+      nod = 0.18 * Math.sin(clamp((k - 0.55) / 0.2, 0, 1) * Math.PI)
+    } else if (st.phase === 'asleep') {
+      sleepTarget = 1
+    }
+    // eyes fall shut slowly, but snap open on waking
+    st.sleep = damp(st.sleep, sleepTarget, sleepTarget > st.sleep ? 2.5 : 14, dt)
+    const sleep = st.sleep
+    const asleep = st.phase === 'asleep'
+
+    // asleep or nodding off: the cursor no longer matters; the head drops and tilts
+    const awakeK = 1 - smooth(0.25, 0.85, sleep)
+    tx *= awakeK
+    ty = ty * awakeK + (0.75 + nod * 3 - yawn * 0.6) * (1 - awakeK)
+    const breathRate = asleep ? 1.25 : 2.1
+    const breath = reduceMotion ? 0 : Math.sin(t * breathRate)
+
+    st.yaw = damp(st.yaw, tx * 0.85, flying ? 3 : asleep ? 1.5 : 6, dt)
+    st.pitch = damp(st.pitch, ty * 0.38 + (asleep ? breath * 0.02 : 0), asleep ? 2 : 6, dt)
 
     let spinExtra = 0
     if (st.spin >= 0) {
@@ -361,10 +494,27 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entr
       if (k >= 1) st.spin = -1
     }
 
+    // ---- eating: gulp, chew, then a little hop of joy ----
+    let chew = 0
+    let eatBob = 0
+    if (st.eatT >= 0) {
+      const before = st.eatT
+      st.eatT += dt
+      const e = st.eatT
+      chew = e < 0.18 ? 1 : 0.35 + 0.45 * Math.abs(Math.sin((e - 0.18) * 13))
+      eatBob = e < EAT_S ? Math.abs(Math.sin(e * 13)) * 0.035 * (1 - smooth(EAT_S - 0.3, EAT_S, e)) : 0
+      if (before < EAT_S && e >= EAT_S && st.hopY <= 0.02) {
+        st.hopV = 2.4
+        st.flap = 0.8
+      }
+      if (e >= EAT_S + 0.15) st.eatT = -1
+    }
+
     if (head.current) {
       head.current.rotation.y = st.yaw + spinExtra
-      head.current.rotation.x = st.pitch
-      head.current.rotation.z = -st.yaw * 0.12 + (reduceMotion ? 0 : Math.sin(t * 0.8) * 0.03)
+      head.current.rotation.x = st.pitch + (st.eatT >= 0 ? 0.1 : 0) - (st.want ? 0.06 : 0)
+      head.current.rotation.z = -st.yaw * 0.12 + (reduceMotion ? 0 : Math.sin(t * 0.8) * 0.03) + sleep * 0.14
+      head.current.position.y = 0.2 - eatBob - sleep * 0.03
     }
     // the eyeballs turn a little further than the head does
     const ex = clamp(tx * 0.32, -0.32, 0.32)
@@ -379,43 +529,59 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entr
       b.rotation.x = damp(b.rotation.x, ey, 12, dt)
     }
 
-    // ---- blink & happy squint ----
-    if (!reduceMotion) {
+    // ---- blink, happy squint, keen eyes, sleep ----
+    if (!reduceMotion && st.phase === 'awake') {
       st.nextBlink -= dt
       if (st.nextBlink <= 0 && st.blinkT < 0) {
         st.blinkT = 0
         st.nextBlink = 2.2 + Math.random() * 3.8
         if (Math.random() < 0.2) st.nextBlink = 0.25 // sometimes a double blink
       }
-      if (st.blinkT >= 0) {
-        st.blinkT += dt
-        const k = st.blinkT / 0.17
-        st.blink = k < 0.45 ? k / 0.45 : Math.max(0, 1 - (k - 0.45) / 0.55)
-        if (k >= 1) st.blinkT = -1
-      }
+    }
+    if (st.blinkT >= 0) {
+      st.blinkT += dt
+      const k = st.blinkT / 0.17
+      st.blink = k < 0.45 ? k / 0.45 : Math.max(0, 1 - (k - 0.45) / 0.55)
+      if (k >= 1) st.blinkT = -1
     }
     st.happy = Math.max(0, st.happy - dt * 0.8)
     const happy = smooth(0, 0.4, st.happy)
-    const up = THREE.MathUtils.lerp(LID.upOpen, LID.upHappy, happy)
-    const upAngle = THREE.MathUtils.lerp(up, LID.upClosed, st.blink)
-    const lowAngle = THREE.MathUtils.lerp(LID.lowOpen, LID.lowHappy, happy)
+    let up = THREE.MathUtils.lerp(LID.upOpen, LID.upHappy, happy)
+    if (st.want) up = LID.upKeen
+    const shut = Math.max(st.blink, sleep)
+    const upAngle = THREE.MathUtils.lerp(up, LID.shut, shut)
+    const lowAngle = THREE.MathUtils.lerp(THREE.MathUtils.lerp(LID.lowOpen, LID.lowHappy, happy), LID.shut, shut)
     for (const lid of [upL.current, upR.current]) if (lid) lid.rotation.x = upAngle
     for (const lid of [lowL.current, lowR.current]) if (lid) lid.rotation.x = lowAngle
+    // the catch light would poke through a closed lid
+    for (const sh of [shineL.current, shineR.current]) if (sh) sh.visible = shut < 0.45
 
-    // ---- hop (simple gravity) ----
+    // ---- beak: open for a treat, chewing, yawning ----
+    const mouthTarget = Math.max(chew, st.want ? 0.6 : 0, yawn)
+    st.mouth = damp(st.mouth, mouthTarget, 22, dt)
+    if (jaw.current) {
+      jaw.current.position.y = JAW.y - st.mouth * 0.055
+      jaw.current.position.z = JAW.z + st.mouth * 0.02
+      jaw.current.rotation.x = JAW.tilt - st.mouth * 0.35
+    }
+    if (mouthIn.current) mouthIn.current.scale.y = 0.004 + st.mouth * 0.05
+
+    // ---- hop (simple gravity), landing spring ----
     if (st.hopV !== 0 || st.hopY > 0) {
       st.hopV -= 11 * dt
       st.hopY += st.hopV * dt
       if (st.hopY <= 0) {
         st.hopY = 0
+        st.dipV = Math.min(st.dipV, st.hopV * 0.18)
         st.hopV = 0
-        st.squash = 1
       }
     }
-    st.squash = damp(st.squash, 0, 9, dt)
+    // a soft, slightly underdamped spring: the legs take the weight and settle
+    const springK = 160
+    st.dipV += (-springK * st.dipY - 2 * 0.72 * Math.sqrt(springK) * st.dipV) * dt
+    st.dipY = clamp(st.dipY + st.dipV * dt, -0.08, 0.04)
     st.flap = damp(st.flap, 0, 2.2, dt)
 
-    const breathe = reduceMotion ? 0 : Math.sin(t * 2.1) * 0.012
     const height = st.hopY + pos[1]
     if (shadow.current) {
       const k = 1 / (1 + Math.max(0, height) * 1.6)
@@ -423,23 +589,25 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entr
       shadow.current.material.opacity = 0.85 * k
     }
     if (root.current) {
-      root.current.position.set(pos[0], height, pos[2])
+      root.current.position.set(pos[0], height + st.dipY, pos[2])
       root.current.rotation.y = st.yaw * 0.18 * (flying ? 0 : 1) + heading
     }
     if (tilt.current) {
-      tilt.current.rotation.z = bank
-      tilt.current.rotation.x = lean
+      tilt.current.rotation.z = bank + (st.eatT >= 0 ? Math.sin(st.eatT * 9) * 0.03 : 0)
+      tilt.current.rotation.x = lean + (st.want ? 0.07 : 0) + sleep * 0.04
     }
     if (bodyRef.current) {
-      const sq = st.squash * 0.12
-      bodyRef.current.scale.set(1 + sq * 0.6, 1 + breathe - sq, 1 + sq * 0.6)
-      bodyRef.current.rotation.z = reduceMotion ? 0 : Math.sin(t * 0.7) * 0.025
+      // breathing fills the whole body evenly (no stretching), deeper in sleep
+      const b = 1 + breath * (asleep ? 0.012 : 0.006)
+      bodyRef.current.scale.setScalar(b)
+      bodyRef.current.rotation.z = reduceMotion ? 0 : Math.sin(t * 0.7) * 0.025 * (1 - sleep * 0.6)
     }
     if (feet.current) {
       // in flight the feet hang down and swing forward to land; on the contact
-      // letters the toes curl over the edge, gripping it
+      // letters the toes curl over the edge, gripping it. On landing the feet
+      // stay planted while the body dips.
       const grip = pose === 'perch' && !flying ? 0.75 : 0
-      feet.current.position.y = -0.98 - hang * 0.09
+      feet.current.position.y = -0.98 - hang * 0.09 - st.dipY
       feet.current.rotation.x = hang * 0.85 - reach * 0.45 + grip
     }
 
@@ -450,9 +618,10 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entr
     } else {
       const flapPower = st.flap * 0.9
       open = flapPower > 0.02 ? Math.abs(Math.sin(t * 22)) * flapPower : 0
+      open -= sleep * 0.05 // tucked in when asleep
     }
     let waveR = 0
-    if (pose === 'perch' && st.hover && !flying) waveR = 1.9 + Math.sin(t * 9) * 0.35
+    if (pose === 'perch' && st.hover && !flying && st.phase === 'awake') waveR = 1.9 + Math.sin(t * 9) * 0.35
     if (wingL.current) wingL.current.rotation.z = -(0.06 + open)
     if (wingR.current) {
       const target = 0.06 + open + waveR
@@ -471,6 +640,26 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entr
       const stream = flying ? 0.9 + Math.sin(t * 13) * 0.18 : 0
       scarfTail.current.rotation.z = -0.22 + (reduceMotion ? 0 : Math.sin(t * 1.6) * 0.05) - st.yaw * 0.1 + st.hopV * 0.03 + stream * 0.5
       scarfTail.current.rotation.x = -0.3 - stream * 0.8
+    }
+
+    // ---- where the beak and the top of the head are on the canvas, for the
+    //      treats and the floating "z"s (last frame's matrices are fine) ----
+    if (head.current && (anchorsRef || zzzRef?.current)) {
+      const { width, height: h } = state.size
+      const toCanvas = (x, y, z) => {
+        tmp.set(x, y, z)
+        head.current.localToWorld(tmp)
+        tmp.project(state.camera)
+        return [(tmp.x * 0.5 + 0.5) * width, (-tmp.y * 0.5 + 0.5) * h]
+      }
+      if (anchorsRef) {
+        const [mx, my] = toCanvas(0, 0.8, 0.74)
+        anchorsRef.current = { mouth: { x: mx, y: my }, size: state.size }
+      }
+      if (zzzRef?.current) {
+        const [zx, zy] = toCanvas(0.42, 1.55, 0.2)
+        zzzRef.current.style.transform = `translate3d(${zx.toFixed(1)}px, ${zy.toFixed(1)}px, 0)`
+      }
     }
   })
 
@@ -530,8 +719,8 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entr
               <sphereGeometry args={[HEAD.r, 72, 48]} />
             </mesh>
 
-            <Eye side={-1} m={m} ball={ballL} upper={upL} lower={lowL} />
-            <Eye side={1} m={m} ball={ballR} upper={upR} lower={lowR} />
+            <Eye side={-1} m={m} ball={ballL} upper={upL} lower={lowL} shine={shineL} />
+            <Eye side={1} m={m} ball={ballR} upper={upR} lower={lowR} shine={shineR} />
 
             <Tuft side={-1} m={m} />
             <Tuft side={1} m={m} />
@@ -540,6 +729,16 @@ export default function Owl({ pose = 'hero', pointer, reduceMotion = false, entr
             <mesh material={m.cere} position={[0, 0.93, 0.665]} scale={[0.07, 0.06, 0.05]}>
               <sphereGeometry args={[1, 16, 12]} />
             </mesh>
+            {/* the inside of the mouth, only seen when the beak opens */}
+            <mesh ref={mouthIn} material={m.mouth} position={[0, 0.8, 0.66]} scale={[0.05, 0.004, 0.03]}>
+              <sphereGeometry args={[1, 16, 10]} />
+            </mesh>
+            {/* lower beak: tucked behind the upper one, it drops to open */}
+            <group ref={jaw} position={[0, JAW.y, JAW.z]} rotation={[JAW.tilt, 0, 0]}>
+              <mesh material={m.beak} position={[0, -0.035, 0]} rotation={[Math.PI, 0, 0]} scale={[1, 1, 0.75]}>
+                <coneGeometry args={[0.045, 0.085, 18]} />
+              </mesh>
+            </group>
             <group position={[0, 0.89, 0.7]} rotation={[0.35, 0, 0]}>
               <mesh material={m.beak} position={[0, -0.06, 0]} rotation={[Math.PI, 0, 0]} scale={[1, 1, 0.8]}>
                 <coneGeometry args={[0.065, 0.17, 24]} />

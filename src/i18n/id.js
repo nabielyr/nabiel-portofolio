@@ -24,6 +24,10 @@ const id = {
     ctaWork: 'Lihat karya saya',
     ctaCv: 'Unduh CV',
     hoots: ['Huu!', 'Huu huu!', 'Halo!', 'Butuh anak magang?', 'Masih di sini.'],
+    wakes: ['Hah? Aku nggak tidur kok!', 'Lima menit lagi...', 'Oh, halo.', 'Hoo? Udah pagi?'],
+    noms: ['Nyam nyam!', 'Enak!', 'Kriuk!', 'Lagi dong!', 'Mmm, kue.'],
+    treat: 'Kasih Hoo kue',
+    treatHint: 'Beri makan Hoo',
     owlLabel: 'Burung hantu navy kecil. Coba klik.',
   },
   ticker: {

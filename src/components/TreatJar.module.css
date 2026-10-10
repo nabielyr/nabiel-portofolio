@@ -1,0 +1,134 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.jar {
+  display: block;
+  width: 64px;
+  height: 80px;
+  padding: 0;
+  /* dragging a cookie out must not scroll the page on touch screens */
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  transform-origin: 50% 100%;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.jar:hover {
+  transform: rotate(-4deg);
+}
+
+.jar:active {
+  transform: rotate(-2deg) scale(0.97);
+}
+
+.jar:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 10px;
+}
+
+.jar svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.glass {
+  fill: var(--paper-raised);
+  opacity: 0.85;
+}
+
+.outline {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+
+.shine {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 3;
+  stroke-linecap: round;
+  opacity: 0.55;
+}
+
+.lid rect {
+  fill: var(--accent);
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+
+.lid path {
+  stroke: var(--ink);
+  stroke-width: 1.2;
+  opacity: 0.35;
+}
+
+/* the lid gives a little jiggle now and then, so the jar asks to be opened */
+.lid {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: jiggle 7s ease-in-out 3s infinite;
+}
+
+@keyframes jiggle {
+  0%,
+  88%,
+  100% {
+    transform: rotate(0);
+  }
+  90% {
+    transform: rotate(-7deg) translateY(-2px);
+  }
+  93% {
+    transform: rotate(6deg) translateY(-1px);
+  }
+  96% {
+    transform: rotate(-3deg);
+  }
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ink-soft);
+}
+
+.arrow {
+  color: var(--accent-ink);
+}
+
+/* the cookie in your hand, above everything (custom cursor included) */
+.held {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 10001;
+  width: 36px;
+  height: 36px;
+  pointer-events: none;
+  will-change: transform;
+  filter: drop-shadow(0 4px 4px rgba(19, 33, 63, 0.25));
+}
+
+.held svg {
+  width: 100%;
+  height: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lid {
+    animation: none;
+  }
+}

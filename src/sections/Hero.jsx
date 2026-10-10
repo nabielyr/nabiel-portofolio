@@ -5,36 +5,55 @@ import { useLanguage } from '../context/contexts'
 import { profile } from '../data/profile'
 import { scrollToTarget } from '../lib/smoothScroll'
 import FlapTicker from '../components/FlapTicker'
+import TreatJar from '../components/TreatJar'
 import styles from './Hero.module.css'
 
-const OwlCanvas = lazy(() => import('../components/owl/OwlCanvas'))
+// Start fetching the owl's code and painting its feathers (in a worker) right away
+const loadOwl = () => import('../components/owl/OwlCanvas')
+const OwlCanvas = lazy(loadOwl)
+
+const NAME_RISE_MS = 1000 // matches the .word animation in Hero.module.css
 
 /**
- * Mount the 3D owl once the browser is idle, so the name paints first, and
- * after its feathers have been painted in small idle slices.
+ * The name waits for its font, so it never swaps typeface halfway through
+ * rising (re-rastering huge glyphs mid-animation dropped a frame).
  */
-function useIdleMount() {
+function useFontReady() {
   const [ready, setReady] = useState(false)
   useEffect(() => {
     let alive = true
-    const go = () =>
-      import('../components/owl/plumage')
-        .then((m) => m.preparePlumage())
-        .catch(() => {})
-        .then(() => alive && setReady(true))
-    let cancel
-    if ('requestIdleCallback' in window) {
-      const id = window.requestIdleCallback(go, { timeout: 1200 })
-      cancel = () => window.cancelIdleCallback(id)
-    } else {
-      const id = setTimeout(go, 300)
-      cancel = () => clearTimeout(id)
-    }
+    const timeout = new Promise((resolve) => setTimeout(resolve, 900))
+    const font = document.fonts?.load('800 1em "Big Shoulders Display"') ?? Promise.resolve()
+    Promise.race([font, timeout])
+      .catch(() => {})
+      .then(() => alive && requestAnimationFrame(() => alive && setReady(true)))
     return () => {
       alive = false
-      cancel()
     }
   }, [])
+  return ready
+}
+
+/**
+ * Mount the 3D owl as soon as the name has finished rising (the WebGL set-up
+ * would otherwise compete with it for the GPU), with its code and textures
+ * prepared in the meantime.
+ */
+function useOwlMount(started) {
+  const [ready, setReady] = useState(false)
+  useEffect(() => {
+    if (!started) return undefined
+    let alive = true
+    const prep = Promise.all([
+      loadOwl(),
+      import('../components/owl/plumage').then((m) => m.preparePlumage()),
+    ]).catch(() => {})
+    const wait = new Promise((resolve) => setTimeout(resolve, NAME_RISE_MS - 60))
+    Promise.all([prep, wait]).then(() => alive && setReady(true))
+    return () => {
+      alive = false
+    }
+  }, [started])
   return ready
 }
 
@@ -57,7 +76,9 @@ const linkedin = profile.socials.find((s) => s.id === 'linkedin')
 export default function Hero() {
   const { t } = useLanguage()
   const reduceMotion = useReducedMotion()
-  const mountOwl = useIdleMount()
+  const fontReady = useFontReady()
+  const mountOwl = useOwlMount(fontReady)
+  const owlApi = useRef(null)
   const narrow = useMediaQuery('(max-width: 860px)')
   // the hero section drives the owl's pointer events, so its tall canvas never blocks links
   const [heroEl, setHeroEl] = useState(null)
@@ -70,8 +91,9 @@ export default function Hero() {
 
   useEffect(() => () => clearTimeout(hootTimer.current), [])
 
-  const onHoot = () => {
-    const lines = t('hero.hoots')
+  // kind: 'hoot' (a click), 'wake' (a click that woke it up) or 'nom' (fed)
+  const onHoot = (kind = 'hoot') => {
+    const lines = t(kind === 'wake' ? 'hero.wakes' : kind === 'nom' ? 'hero.noms' : 'hero.hoots')
     const line = lines[hootIndex.current % lines.length]
     hootIndex.current += 1
     setHoot({ line, key: hootIndex.current })
@@ -80,7 +102,7 @@ export default function Hero() {
   }
 
   const ticker = [
-    { label: `${t('ticker.now')}:`, value: t('ticker.nowText') },
+    { label: t('ticker.now'), value: t('ticker.nowText') },
     { label: t('ticker.time'), value: `${time} WIB` },
     { label: t('ticker.open'), value: t('ticker.openText') },
   ]
@@ -91,6 +113,7 @@ export default function Hero() {
       <OwlCanvas
         pose="hero"
         onHoot={onHoot}
+        apiRef={owlApi}
         reduceMotion={reduceMotion}
         eventSource={heroEl}
         anchor={narrow ? null : owlSpot}
@@ -101,7 +124,7 @@ export default function Hero() {
   )
 
   return (
-    <section id="home" ref={setHeroEl} className={styles.hero}>
+    <section id="home" ref={setHeroEl} className={`${styles.hero} ${fontReady ? styles.go : ''}`}>
       <div className={styles.top}>
         <div className={styles.text}>
           <h1 className={styles.name} aria-label={profile.name}>
@@ -163,6 +186,11 @@ export default function Hero() {
       </div>
 
       {!narrow && <div className={styles.owlStage}>{owl}</div>}
+
+      {/* a jar of treats to feed Hoo, once he's here */}
+      {mountOwl && (
+        <TreatJar className={styles.treats} owlApi={owlApi} onFed={() => onHoot('nom')} label={t('hero.treat')} hint={t('hero.treatHint')} />
+      )}
 
       <FlapTicker items={ticker} label={tickerLabel} dragLabel={t('ticker.drag')} instant={reduceMotion} />
     </section>
