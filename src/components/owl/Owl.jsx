@@ -39,8 +39,11 @@ const smooth = (a, b, x) => {
 
 // Upper/lower eyelid angles (radians around the eye's x axis). Shut, both
 // lids roll to the same angle and meet a third of the way up the eye, so the
-// lash line draws the curve of a closed eye.
-const LID = { upOpen: -1.42, upKeen: -1.58, upHappy: -1.0, lowOpen: 1.35, lowHappy: 0.85, shut: 0.45 }
+// lash line draws the curve of a closed eye. The lower lid reaches LOW_LAP
+// past its rim, tucked under the upper one, so no sliver of eye shows
+// between them from any angle.
+const LOW_LAP = 0.22
+const LID = { upOpen: -1.42, upKeen: -1.58, upHappy: -1.0, lowOpen: 1.35 + LOW_LAP, lowHappy: 0.85 + LOW_LAP, shut: 0.45 }
 
 // The lower beak's hinge (head space): closed it hides behind the upper beak
 const JAW = { y: 0.835, z: 0.685, tilt: 0.35 }
@@ -126,7 +129,7 @@ function useBodyProfile() {
   }, [])
 }
 
-function Eye({ side, m, ball, upper, lower, shine }) {
+function Eye({ side, m, ball, iris, upper, lower, shine }) {
   return (
     <group position={[side * EYE.x, EYE.y, EYE.z]} rotation={[0, side * EYE.turn, 0]}>
       {/* everything inside is squashed into a shallow dome, so the eye sits in
@@ -137,7 +140,7 @@ function Eye({ side, m, ball, upper, lower, shine }) {
           <mesh material={m.eye}>
             <sphereGeometry args={[EYE.r, 40, 28]} />
           </mesh>
-          <mesh material={m.iris} rotation={[Math.PI / 2, 0, 0]}>
+          <mesh ref={iris} material={m.iris} rotation={[Math.PI / 2, 0, 0]}>
             <sphereGeometry args={[EYE.r * 1.012, 40, 10, 0, Math.PI * 2, 0, 0.66]} />
           </mesh>
         </group>
@@ -154,7 +157,7 @@ function Eye({ side, m, ball, upper, lower, shine }) {
           </mesh>
         </mesh>
         <mesh ref={lower} material={m.lid} rotation={[LID.lowOpen, 0, 0]}>
-          <sphereGeometry args={[EYE.r * 1.07, 36, 12, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2]} />
+          <sphereGeometry args={[EYE.r * 1.07, 36, 14, 0, Math.PI * 2, Math.PI / 2 - LOW_LAP, Math.PI / 2 + LOW_LAP]} />
         </mesh>
       </group>
     </group>
@@ -274,6 +277,8 @@ export default function Owl({
   const lowR = useRef()
   const shineL = useRef()
   const shineR = useRef()
+  const irisL = useRef()
+  const irisR = useRef()
   const jaw = useRef()
   const mouthIn = useRef()
   const shadow = useRef()
@@ -307,6 +312,14 @@ export default function Owl({
     sleep: 0, // how closed the eyes are and how far the head has dropped, 0..1
     // food
     want: false, // a treat is close: beak open, eyes wide
+    keen: 0, // eased version of want, so the lean and the eyes glide in and out
+    eating: 0, // eased 0..1 while eating
+    // the hanging end of the scarf is a damped pendulum (angle + velocity per axis)
+    scarfX: -0.3,
+    scarfXV: 0,
+    scarfZ: -0.22,
+    scarfZV: 0,
+    wind: 0,
     eatT: -1, // seconds into eating, -1 = not eating
     mouth: 0,
   })
@@ -429,11 +442,15 @@ export default function Owl({
       hang = 1 - smooth(0.66, 0.84, k)
       reach = smooth(0.7, 0.84, k) * (1 - smooth(0.93, 1, k))
       flying = true
+      // the air rushing past dies down as it slows to land
+      st.wind = (0.9 + Math.sin(st.intro * 13) * 0.18) * (1 - smooth(0.55, 1, k))
       // watch where it's going, then the cursor once it has landed
       tx = tx * land - 0.15 * (1 - land)
       ty = ty * land + 0.35 * (1 - land)
       if (k >= 1) {
         st.intro = -1
+        st.wind = 0
+        st.scarfXV -= 1.4 // the stop swings the scarf end forward
         st.dipV = -0.75
         st.happy = 0.6
         st.awakeLeft = AWAKE_S
@@ -512,7 +529,7 @@ export default function Owl({
 
     if (head.current) {
       head.current.rotation.y = st.yaw + spinExtra
-      head.current.rotation.x = st.pitch + (st.eatT >= 0 ? 0.1 : 0) - (st.want ? 0.06 : 0)
+      head.current.rotation.x = st.pitch + st.eating * 0.08 - st.keen * 0.05
       head.current.rotation.z = -st.yaw * 0.12 + (reduceMotion ? 0 : Math.sin(t * 0.8) * 0.03) + sleep * 0.14
       head.current.position.y = 0.2 - eatBob - sleep * 0.03
     }
@@ -546,19 +563,23 @@ export default function Owl({
     }
     st.happy = Math.max(0, st.happy - dt * 0.8)
     const happy = smooth(0, 0.4, st.happy)
+    st.keen = damp(st.keen, st.want ? 1 : 0, 7, dt)
+    st.eating = damp(st.eating, st.eatT >= 0 ? 1 : 0, 6, dt)
     let up = THREE.MathUtils.lerp(LID.upOpen, LID.upHappy, happy)
-    if (st.want) up = LID.upKeen
+    up = THREE.MathUtils.lerp(up, LID.upKeen, st.keen)
     const shut = Math.max(st.blink, sleep)
     const upAngle = THREE.MathUtils.lerp(up, LID.shut, shut)
     const lowAngle = THREE.MathUtils.lerp(THREE.MathUtils.lerp(LID.lowOpen, LID.lowHappy, happy), LID.shut, shut)
     for (const lid of [upL.current, upR.current]) if (lid) lid.rotation.x = upAngle
     for (const lid of [lowL.current, lowR.current]) if (lid) lid.rotation.x = lowAngle
-    // the catch light would poke through a closed lid
+    // the catch light would poke through a closed lid, and the iris has no
+    // business showing once the eyes are nearly shut
     for (const sh of [shineL.current, shineR.current]) if (sh) sh.visible = shut < 0.45
+    for (const ir of [irisL.current, irisR.current]) if (ir) ir.visible = shut < 0.8
 
     // ---- beak: open for a treat, chewing, yawning ----
     const mouthTarget = Math.max(chew, st.want ? 0.6 : 0, yawn)
-    st.mouth = damp(st.mouth, mouthTarget, 22, dt)
+    st.mouth = damp(st.mouth, mouthTarget, 16, dt)
     if (jaw.current) {
       jaw.current.position.y = JAW.y - st.mouth * 0.055
       jaw.current.position.z = JAW.z + st.mouth * 0.02
@@ -593,8 +614,9 @@ export default function Owl({
       root.current.rotation.y = st.yaw * 0.18 * (flying ? 0 : 1) + heading
     }
     if (tilt.current) {
-      tilt.current.rotation.z = bank + (st.eatT >= 0 ? Math.sin(st.eatT * 9) * 0.03 : 0)
-      tilt.current.rotation.x = lean + (st.want ? 0.07 : 0) + sleep * 0.04
+      // a happy little sway while eating, eased in and out
+      tilt.current.rotation.z = bank + Math.sin(st.t * 9) * 0.025 * st.eating
+      tilt.current.rotation.x = lean + st.keen * 0.05 + sleep * 0.04
     }
     if (bodyRef.current) {
       // breathing fills the whole body evenly (no stretching), deeper in sleep
@@ -635,11 +657,24 @@ export default function Owl({
       })
     }
 
-    // scarf end swings, and streams out behind in flight
+    // scarf end: streams out in the wind, then swings back and settles like
+    // cloth on a string (an underdamped spring per axis), never snapping
     if (scarfTail.current) {
-      const stream = flying ? 0.9 + Math.sin(t * 13) * 0.18 : 0
-      scarfTail.current.rotation.z = -0.22 + (reduceMotion ? 0 : Math.sin(t * 1.6) * 0.05) - st.yaw * 0.1 + st.hopV * 0.03 + stream * 0.5
-      scarfTail.current.rotation.x = -0.3 - stream * 0.8
+      const targetZ = -0.22 + (reduceMotion ? 0 : Math.sin(t * 1.6) * 0.05) - st.yaw * 0.1 + st.wind * 0.5
+      const targetX = -0.3 - st.wind * 0.8 - st.hopV * 0.04
+      const k = 45
+      const c = 2 * 0.3 * Math.sqrt(k)
+      st.scarfXV += (-k * (st.scarfX - targetX) - c * st.scarfXV) * dt
+      st.scarfZV += (-k * (st.scarfZ - targetZ) - c * st.scarfZV) * dt
+      st.scarfX += st.scarfXV * dt
+      st.scarfZ += st.scarfZV * dt
+      // it can't swing back through the belly: it bumps it and stops
+      if (st.scarfX > -0.27) {
+        st.scarfX = -0.27
+        st.scarfXV = Math.min(0, st.scarfXV) * -0.3
+      }
+      scarfTail.current.rotation.x = st.scarfX
+      scarfTail.current.rotation.z = st.scarfZ
     }
 
     // ---- where the beak and the top of the head are on the canvas, for the
@@ -719,8 +754,8 @@ export default function Owl({
               <sphereGeometry args={[HEAD.r, 72, 48]} />
             </mesh>
 
-            <Eye side={-1} m={m} ball={ballL} upper={upL} lower={lowL} shine={shineL} />
-            <Eye side={1} m={m} ball={ballR} upper={upR} lower={lowR} shine={shineR} />
+            <Eye side={-1} m={m} ball={ballL} iris={irisL} upper={upL} lower={lowL} shine={shineL} />
+            <Eye side={1} m={m} ball={ballR} iris={irisR} upper={upR} lower={lowR} shine={shineR} />
 
             <Tuft side={-1} m={m} />
             <Tuft side={1} m={m} />
