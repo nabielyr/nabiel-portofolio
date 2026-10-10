@@ -4,21 +4,19 @@ import styles from './Cursor.module.css'
 
 const INTERACTIVE = 'a, button, [role="button"], input, textarea, select, label, [data-cursor], .clickable'
 
-// Reticle follow speed (1/s). Frame-rate independent: same feel at 60Hz and 144Hz.
+// Ring follow speed (1/s). Frame-rate independent: same feel at 60Hz and 144Hz.
 const FOLLOW = 30
-const SETTLE = 0.1 // px - stop the loop once the reticle has caught up
+const SETTLE = 0.1 // px - stop the loop once the ring has caught up
 
 /**
- * AI Target Reticle / Precision Node Cursor
+ * Custom cursor
  *
- * Performance Architecture:
  * - The precision dot is the native OS cursor (an SVG image set in global.css),
- *   so it is drawn by the hardware cursor plane with zero latency and never
- *   stutters, even when the page is busy.
- * - The reticle brackets trail it with a time-based lerp written straight to a
- *   DOM ref via translate3d (zero React re-renders on mousemove). The rAF loop
- *   only runs while the reticle is still moving.
- * - Pure CSS transitions for state morphs (default -> hover -> locked -> label).
+ *   so it is drawn by the hardware cursor plane with zero latency.
+ * - A thin ring trails it with a time-based lerp written straight to a DOM ref
+ *   via translate3d (no React re-renders on mousemove). The rAF loop only runs
+ *   while the ring is still moving.
+ * - The ring grows over links and buttons and becomes a "View" label over project covers.
  */
 export default function Cursor() {
   const isTouch = useIsTouch()
@@ -145,20 +143,10 @@ export default function Cursor() {
 
   return (
     <div ref={layerRef} className={styles.layer} aria-hidden="true">
-      {/* Outer AI Target Reticle (smooth lerp follow) */}
-      <div ref={reticleRef} className={styles.reticleAnchor}>
-        <div className={`${styles.reticle} ${modeClass}`}>
-          {/* 4 Cybernetic Corner Brackets */}
-          <span className={`${styles.bracket} ${styles.tl}`} />
-          <span className={`${styles.bracket} ${styles.tr}`} />
-          <span className={`${styles.bracket} ${styles.bl}`} />
-          <span className={`${styles.bracket} ${styles.br}`} />
-
-          {/* Central cross-hair micro lines visible on hover */}
-          <span className={styles.crossH} />
-          <span className={styles.crossV} />
-
-          {/* Label badge when hovering project cards */}
+      {/* A thin ring that trails the dot */}
+      <div ref={reticleRef} className={styles.anchor}>
+        <div className={`${styles.ring} ${modeClass}`}>
+          {/* turns into a small label over project covers */}
           {label && <span className={styles.labelText}>{label} ↗</span>}
         </div>
       </div>

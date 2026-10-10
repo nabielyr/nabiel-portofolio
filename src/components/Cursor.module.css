@@ -9,153 +9,71 @@
 
 /* Coordinates anchor for zero-overhead translate3d.
    The precision dot itself is the native cursor (see global.css). */
-.reticleAnchor {
+.anchor {
   position: absolute;
   top: 0;
   left: 0;
   width: 0;
   height: 0;
-  pointer-events: none;
   will-change: transform;
 }
 
-/* ---------- AI Target Reticle (HUD Brackets) ---------- */
-.reticle {
+.ring {
   position: absolute;
   top: 0;
   left: 0;
-  transform: translate(-50%, -50%);
   display: grid;
   place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius-pill);
+  transform: translate(-50%, -50%);
+  opacity: 0.55;
   transition:
-    width 0.22s cubic-bezier(0.2, 0.9, 0.3, 1),
-    height 0.22s cubic-bezier(0.2, 0.9, 0.3, 1),
-    border-radius 0.22s cubic-bezier(0.2, 0.9, 0.3, 1),
-    background-color 0.2s ease,
+    width 0.25s var(--ease-out),
+    height 0.25s var(--ease-out),
+    opacity 0.2s ease,
     border-color 0.2s ease,
-    transform 0.2s cubic-bezier(0.2, 0.9, 0.3, 1);
+    background-color 0.2s ease;
 }
 
-/* Corner Bracket Lines */
-.bracket {
-  position: absolute;
-  width: 6px;
-  height: 6px;
-  border-color: var(--accent);
-  border-style: solid;
-  opacity: 0.75;
-  transition:
-    width 0.22s cubic-bezier(0.2, 0.9, 0.3, 1),
-    height 0.22s cubic-bezier(0.2, 0.9, 0.3, 1),
-    border-color 0.22s cubic-bezier(0.2, 0.9, 0.3, 1),
-    opacity 0.22s cubic-bezier(0.2, 0.9, 0.3, 1);
-}
-
-.tl {
-  top: 0;
-  left: 0;
-  border-width: 1.5px 0 0 1.5px;
-}
-
-.tr {
-  top: 0;
-  right: 0;
-  border-width: 1.5px 1.5px 0 0;
-}
-
-.bl {
-  bottom: 0;
-  left: 0;
-  border-width: 0 0 1.5px 1.5px;
-}
-
-.br {
-  bottom: 0;
-  right: 0;
-  border-width: 0 1.5px 1.5px 0;
-}
-
-/* Micro crosshairs (hidden by default) */
-.crossH,
-.crossV {
-  position: absolute;
-  background: var(--accent);
-  opacity: 0;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-.crossH {
-  width: 8px;
-  height: 1px;
-}
-
-.crossV {
-  width: 1px;
-  height: 8px;
-}
-
-/* Default Mode: compact 28px square HUD */
 .defaultMode {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
 }
 
-/* Hover Mode: expands to 46px target box with soft glow */
+/* over links and buttons */
 .hoverMode {
-  width: 48px;
-  height: 48px;
-  background: rgba(255, 122, 26, 0.06);
-  border: 1px solid rgba(255, 122, 26, 0.18);
-  border-radius: 8px;
-  box-shadow: 0 0 20px rgba(255, 122, 26, 0.15);
-}
-
-.hoverMode .bracket {
-  width: 8px;
-  height: 8px;
+  width: 46px;
+  height: 46px;
   opacity: 1;
-  border-color: #ff9a5c;
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
-.hoverMode .crossH,
-.hoverMode .crossV {
-  opacity: 0.35;
-}
-
-/* Click / Target Lock Mode: snaps tight */
+/* pressed */
 .downMode {
   width: 20px;
   height: 20px;
-  transform: translate(-50%, -50%) scale(0.9);
-}
-
-.downMode .bracket {
-  width: 5px;
-  height: 5px;
-  border-color: #fff;
   opacity: 1;
 }
 
-/* Label Mode: expanded badge for project cards */
+/* over project covers: a small label */
 .labelMode {
-  width: 96px;
-  height: 36px;
-  border-radius: 999px;
-  background: var(--accent);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 18px rgba(255, 122, 26, 0.45);
-}
-
-.labelMode .bracket {
-  opacity: 0;
+  width: auto;
+  height: auto;
+  padding: 0.5rem 0.85rem;
+  opacity: 1;
+  border-color: var(--ink);
+  background: var(--ink);
 }
 
 .labelText {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: #fff;
   white-space: nowrap;
+  color: var(--paper);
 }

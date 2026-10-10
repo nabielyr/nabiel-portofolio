@@ -1,164 +1,52 @@
-import { useEffect, useRef, useState } from 'react'
-import { animate, motion, useInView, useScroll, useTransform } from 'framer-motion'
-import { FiAward } from 'react-icons/fi'
 import { useLanguage } from '../context/contexts'
+import { profile } from '../data/profile'
 import SectionHeading from '../components/SectionHeading'
-import Reveal from '../components/Reveal'
 import styles from './About.module.css'
 
-/** Each word lights up as the paragraph scrolls through the viewport. */
-function ScrollText({ text }) {
-  const ref = useRef(null)
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start 85%', 'end 45%'] })
-  const words = text.split(' ')
-  return (
-    <p ref={ref} className={styles.lead}>
-      {words.map((w, i) => (
-        <Word key={`${w}-${i}`} progress={scrollYProgress} range={[i / words.length, (i + 1) / words.length]}>
-          {w}
-        </Word>
-      ))}
-    </p>
-  )
-}
-
-function Word({ children, progress, range }) {
-  const opacity = useTransform(progress, range, [0.18, 1])
-  return (
-    <motion.span className={styles.leadWord} style={{ opacity }}>
-      {children}{' '}
-    </motion.span>
-  )
-}
-
-function Counter({ value, suffix }) {
-  const ref = useRef(null)
-  const inView = useInView(ref, { once: true, margin: '-15% 0px' })
-  const [display, setDisplay] = useState(0)
-
-  useEffect(() => {
-    if (!inView) return undefined
-    const controls = animate(0, value, {
-      duration: 1.8,
-      ease: [0.22, 1, 0.36, 1],
-      onUpdate: (v) => setDisplay(Math.round(v)),
-    })
-    return () => controls.stop()
-  }, [inView, value])
-
-  return (
-    <span ref={ref} className={styles.statValue}>
-      {display}
-      <span className={styles.statSuffix}>{suffix}</span>
-    </span>
-  )
-}
-
-/** Tiny syntax-highlighted "class Nabiel" snippet. */
-function CodeCard() {
-  const lines = [
-    [['kw', 'class '], ['cls', 'Nabiel'], ['p', '('], ['cls', 'Student'], ['p', '):']],
-    [['p', '    '], ['var', 'university'], ['p', ' = '], ['str', '"Universitas Brawijaya"']],
-    [['p', '    '], ['var', 'major'], ['p', '      = '], ['str', '"Information Systems"']],
-    [['p', '    '], ['var', 'focus'], ['p', '      = ['], ['str', '"AI/ML"'], ['p', ', '], ['str', '"Data Science"'], ['p', ']']],
-    [],
-    [['p', '    '], ['kw', 'def '], ['fn', 'build'], ['p', '('], ['var', 'self'], ['p', ', '], ['var', 'idea'], ['p', '):']],
-    [['p', '        '], ['kw', 'return '], ['var', 'idea'], ['p', '.'], ['fn', 'into_reality'], ['p', '()  '], ['cm', '# always']],
-  ]
-  return (
-    <div className={styles.code}>
-      <div className={styles.codeBar}>
-        <span className={styles.dots}>
-          <i />
-          <i />
-          <i />
-        </span>
-        <span className={styles.codeFile}>about.py</span>
-      </div>
-      <pre className={styles.pre}>
-        {lines.map((tokens, i) => (
-          <motion.code
-            key={i}
-            className={styles.codeLine}
-            initial={{ opacity: 0, x: -10 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.15 + i * 0.08, duration: 0.5 }}
-          >
-            <span className={styles.ln}>{i + 1}</span>
-            {tokens.map(([type, value], j) => (
-              <span key={j} className={styles[type]}>
-                {value}
-              </span>
-            ))}
-          </motion.code>
-        ))}
-      </pre>
-    </div>
-  )
-}
-
 export default function About() {
-  const { t, lang } = useLanguage()
-  const stats = t('about.stats')
+  const { t } = useLanguage()
+  const facts = t('about.facts')
 
   return (
     <section id="about" className="section">
       <div className="container">
-        <SectionHeading index={1} eyebrow={t('about.eyebrow')} title={t('about.title')} accent={t('about.titleAccent')} key={lang} />
+        <SectionHeading index={2} kicker={t('about.kicker')} title={t('about.title')} />
 
         <div className={styles.grid}>
+          <figure className={styles.photo}>
+            <img
+              src={profile.photo.src}
+              srcSet={profile.photo.srcSet}
+              sizes="(max-width: 860px) 70vw, 380px"
+              alt={profile.name}
+              width="800"
+              height="1000"
+              loading="lazy"
+            />
+            <figcaption>{t('about.caption')}</figcaption>
+          </figure>
+
           <div className={styles.text}>
-            <ScrollText key={lang} text={t('about.lead')} />
-            <Reveal as="p" className={styles.body}>
-              {t('about.body')}
-            </Reveal>
+            <p className={styles.lead}>{t('about.p1')}</p>
+            <p className={styles.body}>{t('about.p2')}</p>
 
-            <div className={styles.stats}>
-              {stats.map((s, i) => (
-                <Reveal key={s.label} delay={i * 0.1} className={styles.stat}>
-                  <Counter value={s.value} suffix={s.suffix} />
-                  <span className={styles.statLabel}>{s.label}</span>
-                </Reveal>
+            <dl className={styles.facts}>
+              {facts.map((f) => (
+                <div key={f.label} className={styles.fact}>
+                  <dt>{f.label}</dt>
+                  <dd>{f.value}</dd>
+                </div>
               ))}
-            </div>
-          </div>
-
-          <div className={styles.side}>
-            <Reveal>
-              <CodeCard />
-            </Reveal>
-            <Reveal delay={0.15} className={styles.labResident}>
-              <div className={styles.labHead}>
-                <div className={styles.labLogoWrap}>
-                  <img
-                    src="/images/logo-is-lab.webp"
-                    alt="Intelligent System Laboratory"
-                    className={styles.labLogo}
-                    width="44"
-                    height="44"
-                    loading="lazy"
-                  />
-                </div>
-                <div className={styles.labMeta}>
-                  <div className={styles.labBadgeRow}>
-                    <span className={styles.currentDot} />
-                    <span className={styles.currentLabel}>{t('about.residentBadge')}</span>
-                  </div>
-                  <h4 className={styles.labTitle}>{t('about.labTitle')}</h4>
-                </div>
+              <div className={styles.fact}>
+                <dt>{t('about.honorLabel')}</dt>
+                <dd>
+                  <span className={styles.star} aria-hidden="true">
+                    ★
+                  </span>{' '}
+                  {t('about.honor')}
+                </dd>
               </div>
-              <p className={styles.labDesc}>{t('about.labDesc')}</p>
-            </Reveal>
-            <Reveal delay={0.25} className={styles.honor}>
-              <span className={styles.honorIcon}>
-                <FiAward />
-              </span>
-              <div>
-                <span className={styles.honorLabel}>{t('about.honorTitle')}</span>
-                <p className={styles.honorText}>{t('about.honor')}</p>
-              </div>
-            </Reveal>
+            </dl>
           </div>
         </div>
       </div>

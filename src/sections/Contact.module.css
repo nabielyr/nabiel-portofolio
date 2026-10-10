@@ -1,208 +1,205 @@
-.lead {
-  color: var(--text-muted);
-  font-size: var(--fs-md);
-  max-width: 620px;
-  margin-inline: auto;
-  text-align: center;
+.contact {
+  padding-bottom: clamp(3rem, 6vw, 5rem);
 }
 
-.card {
-  position: relative;
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  padding: clamp(2rem, 5vw, 4rem);
+.kicker {
   display: flex;
-  flex-direction: column;
-  gap: clamp(2rem, 4vw, 3.5rem);
-}
-
-.ctaBox {
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  text-align: center;
-  gap: 1.25rem;
+  gap: 0.75rem;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--ink-soft);
 }
 
-.statusPill {
+.index {
+  color: var(--accent-ink);
+}
+
+.rule {
+  flex: 1;
+  height: 1px;
+  background: var(--rule-strong);
+}
+
+/* ---------- Giant title with the owl standing on it ---------- */
+.titleWrap {
+  position: relative;
+  font-size: clamp(4rem, 0.5rem + 14vw, 15rem);
+  margin-top: clamp(9rem, 18vw, 16rem);
+  margin-bottom: clamp(2.5rem, 5vw, 4rem);
+}
+
+.perch {
+  position: absolute;
+  z-index: 2;
+  /* feet on the cap line of the letters */
+  bottom: calc(100% - 0.06em);
+  right: 0.35em;
+  width: clamp(150px, 20vw, 290px);
+  height: clamp(240px, 32vw, 440px);
+  pointer-events: none;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1em;
+  line-height: 0.86;
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+}
+
+.dot {
+  display: inline-block;
+  width: 0.14em;
+  height: 0.14em;
+  margin-left: 0.04em;
+  background: var(--accent);
+}
+
+/* ---------- Details ---------- */
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 5rem);
+  padding-top: clamp(1.5rem, 3vw, 2.5rem);
+  border-top: 1px solid var(--rule-strong);
+}
+
+.lead {
+  font-size: clamp(1.15rem, 1rem + 0.5vw, 1.4rem);
+  line-height: 1.5;
+  max-width: 38rem;
+  margin-bottom: 1.25rem;
+}
+
+.status {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.35rem 0.85rem;
-  border-radius: var(--radius-pill);
-  border: 1px solid rgba(61, 220, 151, 0.25);
-  background: rgba(61, 220, 151, 0.08);
-  color: #3ddc97;
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  font-weight: 500;
+  font-weight: 600;
+  margin-bottom: 2rem;
 }
 
 .statusDot {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: #3ddc97;
-  box-shadow: 0 0 10px #3ddc97;
-}
-
-.ctaHeading {
-  font-size: var(--fs-xl);
-  letter-spacing: -0.03em;
-  max-width: 620px;
+  background: var(--accent);
 }
 
 .emailRow {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
 }
 
-.emailPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.85rem;
-  padding: 0.85rem 1.4rem;
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--border-strong);
-  background: var(--bg-elevated);
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: var(--fs-sm);
-  transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+.email {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.7rem, 1rem + 2.6vw, 3.2rem);
+  line-height: 1;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+  word-break: break-all;
+  transition: color var(--dur-fast);
 }
 
-.emailPill:hover {
-  border-color: var(--accent);
-  box-shadow: 0 4px 20px -6px var(--accent-glow);
-}
-
-.copyIcon {
-  display: flex;
+.email:hover {
   color: var(--accent);
-  font-size: 1rem;
 }
 
-.checkIcon {
-  color: #3ddc97;
-}
-
-.toast {
-  position: absolute;
-  top: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 1.25rem;
+.copy {
+  padding: 0.5rem 0.9rem;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  border: 1px solid var(--ink);
   border-radius: var(--radius-pill);
+  transition: background-color var(--dur-fast), color var(--dur-fast);
+}
+
+.copy:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.cv {
+  display: inline-flex;
+  padding: 0.75rem 1.2rem;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: var(--radius-pill);
+}
+
+.cv:hover {
   background: var(--accent);
   color: #fff;
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  box-shadow: var(--shadow-glow);
-  z-index: 10;
 }
 
-/* Socials */
-.socialsGrid {
+.sideLabel {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 0.5rem;
+}
+
+.links li a {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: 6.5rem minmax(0, 1fr) auto;
   gap: 1rem;
+  align-items: baseline;
+  padding-block: 0.9rem;
+  border-bottom: 1px solid var(--rule);
+  transition: color var(--dur-fast);
 }
 
-.socialCard {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.15rem 1.35rem;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
-  background: var(--bg-elevated);
-  transition: border-color var(--dur-fast), transform var(--dur-fast), background var(--dur-fast);
+.links li:first-child a {
+  border-top: 1px solid var(--rule);
 }
 
-.socialCard:hover {
-  border-color: var(--accent);
-  background: var(--surface-hover);
+.links li a:hover {
+  color: var(--accent-ink);
 }
 
-.socialIcon {
-  display: flex;
-  font-size: 1.4rem;
-  color: var(--accent);
-}
-
-.socialInfo {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-.socialLabel {
+.linkName {
   font-weight: 600;
+}
+
+.linkHandle {
   font-size: var(--fs-sm);
-  color: var(--text);
+  color: var(--ink-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.socialHandle {
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  color: var(--text-muted);
+.clock {
+  margin-top: 1.5rem;
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
 }
 
-.socialArrow {
-  font-size: 1.1rem;
-  color: var(--text-faint);
-  transition: transform var(--dur-fast), color var(--dur-fast);
+.clock strong {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
 }
 
-.socialCard:hover .socialArrow {
-  transform: translate(2px, -2px);
-  color: var(--accent);
-}
-
-.cardFooter {
-  display: flex;
-  justify-content: center;
-  padding-top: 1rem;
-  border-top: 1px dashed var(--border);
-}
-
-.clockWrap {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  color: var(--text-muted);
-}
-
-.clockIcon {
-  color: var(--accent);
-}
-
-.clockTime {
-  color: var(--text);
-  font-weight: 600;
-}
-
-@media (max-width: 600px) {
-  .emailRow {
-    flex-direction: column;
-    width: 100%;
+@media (max-width: 760px) {
+  .grid {
+    grid-template-columns: 1fr;
   }
-  .emailPill {
-    width: 100%;
-    justify-content: space-between;
+  .perch {
+    right: 0.1em;
   }
 }

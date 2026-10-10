@@ -1,100 +1,65 @@
-import { forwardRef } from 'react'
-import { motion } from 'framer-motion'
-import { FiArrowUpRight, FiGithub } from 'react-icons/fi'
 import { useLanguage } from '../context/contexts'
 import { categoriesOf } from '../data/projects'
-import ProjectCover from './ProjectCover'
 import styles from './ProjectCard.module.css'
 
-const ProjectCard = forwardRef(function ProjectCard({ project }, ref) {
-  const { t, pick } = useLanguage()
-  const primaryLink = project.demo || project.github
-  const inProgress = project.status === 'in-progress'
-  const categories = categoriesOf(project)
+/** A project without a screenshot gets a cover set in type from its own title. */
+function TypeCover({ title }) {
+  return (
+    <div className={styles.typeCover} aria-hidden="true">
+      <span>{title}</span>
+    </div>
+  )
+}
 
-  // Spotlight that follows the cursor (CSS variables, no re-render)
-  const onMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    e.currentTarget.style.setProperty('--mx', `${e.clientX - rect.left}px`)
-    e.currentTarget.style.setProperty('--my', `${e.clientY - rect.top}px`)
-  }
+/**
+ * One project: cover, title and year, categories, a short description, the
+ * stack, and plain links to the live demo (if there is one) and the code.
+ */
+export default function ProjectCard({ project, feature = false }) {
+  const { t, pick } = useLanguage()
+  const primary = project.demo || project.github
+  const cats = categoriesOf(project)
+    .map((c) => t(`categories.${c}`))
+    .join(' · ')
 
   return (
-    <motion.article
-      ref={ref}
-      layout
-      initial={{ opacity: 0, scale: 0.94, y: 20 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.94, y: 10 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className={`${styles.card} ${project.featured ? styles.featured : ''}`}
-      onMouseMove={onMove}
-      id={`project-${project.id}`}
-    >
-      {primaryLink && (
-        <a
-          className={styles.overlayLink}
-          href={primaryLink}
-          // Label lives on the overlay, not the card, so it gives way to the
-          // GitHub / demo icons that sit above it
-          data-cursor-label={t('projects.view')}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={`${project.title} - ${t('projects.view')}`}
-        />
-      )}
-
-      <div className={`${styles.cover} ${project.image ? styles.coverPhoto : ''}`}>
+    <article id={`project-${project.id}`} className={`${styles.card} ${feature ? styles.feature : ''}`}>
+      <a
+        className={styles.cover}
+        href={primary}
+        target="_blank"
+        rel="noopener noreferrer"
+        data-cursor-label={t('projects.view')}
+        aria-label={`${project.title} - ${t('projects.view')}`}
+      >
         {project.image ? (
-          <img src={project.image} alt={project.title} loading="lazy" className={styles.coverImg} />
+          <img src={project.image} alt="" loading="lazy" width="1200" height="750" />
         ) : (
-          <ProjectCover seed={project.id} category={categories[0]} className={styles.coverImg} />
+          <TypeCover title={project.title} />
         )}
-        <div className={styles.badges}>
-          {categories.map((c) => (
-            <span key={c} className={styles.badge}>
-              {t(`categories.${c}`)}
-            </span>
-          ))}
-          {project.featured && <span className={`${styles.badge} ${styles.badgeAccent}`}>★ {t('projects.featured')}</span>}
-        </div>
-        {inProgress && (
-          <span className={styles.status}>
-            <span className={styles.statusDot} />
-            {t('projects.comingSoon')}
-          </span>
-        )}
-      </div>
+      </a>
 
       <div className={styles.body}>
         <div className={styles.titleRow}>
           <h3 className={styles.title}>{project.title}</h3>
           <span className={styles.year}>{project.year}</span>
         </div>
+        <p className={styles.cats}>{cats}</p>
         <p className={styles.desc}>{pick(project.description)}</p>
-
-        <div className={styles.footer}>
-          <ul className={styles.tech}>
-            {project.tech.map((tech) => (
-              <li key={tech}>{tech}</li>
-            ))}
-          </ul>
-          <div className={styles.links}>
-            {project.github && (
-              <a href={project.github} target="_blank" rel="noopener noreferrer" aria-label={`${project.title} ${t('projects.code')}`}>
-                <FiGithub />
-              </a>
-            )}
-            {project.demo && (
-              <a href={project.demo} target="_blank" rel="noopener noreferrer" aria-label={`${project.title} ${t('projects.demo')}`}>
-                <FiArrowUpRight />
-              </a>
-            )}
-          </div>
+        <p className={styles.tech}>{project.tech.join(' · ')}</p>
+        <div className={styles.links}>
+          {project.demo && (
+            <a href={project.demo} target="_blank" rel="noopener noreferrer">
+              {t('projects.demo')} ↗
+            </a>
+          )}
+          {project.github && (
+            <a href={project.github} target="_blank" rel="noopener noreferrer">
+              {t('projects.code')} ↗
+            </a>
+          )}
         </div>
       </div>
-    </motion.article>
+    </article>
   )
-})
-
-export default ProjectCard
+}

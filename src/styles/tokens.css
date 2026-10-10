@@ -15,13 +15,12 @@
   --fs-lg: clamp(1.2rem, 1.05rem + 0.5vw, 1.45rem);
   --fs-xl: clamp(1.6rem, 1.2rem + 1.6vw, 2.4rem);
   --fs-2xl: clamp(3rem, 1.6rem + 6vw, 7.5rem);
-  --fs-giant: clamp(5.5rem, 1rem + 16.5vw, 19rem);
   --fs-name: clamp(3.8rem, 0.8rem + 13.2vw, 14.5rem);
 
   --tracking-label: 0.14em;
 
   /* Spacing */
-  --section-pad: clamp(4.5rem, 2.5rem + 7vw, 9rem);
+  --section-pad: clamp(4rem, 2.5rem + 5vw, 7rem);
   --container: 1320px;
   --gutter: clamp(1.25rem, 0.5rem + 3vw, 3rem);
   --header-h: 64px;
@@ -78,34 +77,4 @@
   --accent: var(--orange-400);
   --accent-ink: var(--orange-400);
   --selection: color-mix(in srgb, var(--orange-400) 35%, transparent);
-}
-
-/*
- * v1 aliases so sections that haven't been rebuilt yet still render.
- * Remove once every section uses the tokens above.
- */
-:root,
-[data-theme='light'],
-[data-theme='dark'] {
-  --bg: var(--paper);
-  --text: var(--ink);
-  --text-muted: var(--ink-soft);
-  --text-faint: var(--ink-faint);
-  --border: var(--rule);
-  --border-strong: var(--rule-strong);
-  --surface: var(--paper-raised);
-  --surface-solid: var(--paper-raised);
-  --surface-hover: var(--paper-raised);
-  --glass: var(--paper-raised);
-  --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
-  --accent-glow: color-mix(in srgb, var(--accent) 30%, transparent);
-  --secondary: var(--ink);
-  --secondary-soft: color-mix(in srgb, var(--ink) 8%, transparent);
-  --shadow-card: none;
-  --gradient-brand: var(--accent);
-  --font-mono: var(--font-body);
-  --radius-lg: var(--radius-md);
-  --radius-xl: var(--radius-md);
-  --amber-400: var(--accent);
-  --orange-600: var(--orange-500);
 }

@@ -10,9 +10,12 @@ const GL = { antialias: true, alpha: true, powerPreference: 'default' }
 const FOV = 30
 const CAMERA = { position: [0, 0, 8], fov: FOV }
 
-// Scene extents in world units: bottom of the book stack, tips of the ear tufts
-const SCENE_BOTTOM = -1.8
-const SCENE_HEIGHT = 3.65
+// Scene extents in world units for each pose: where it stands, and how tall it is.
+// "margin" leaves room under the feet (the front of the books sits closer to the camera).
+const SCENES = {
+  hero: { bottom: -1.8, height: 3.65, margin: 0.4 }, // on the stack of books
+  perch: { bottom: -1.06, height: 2.9, margin: 0.03 }, // standing on the page itself
+}
 
 // Adaptive resolution: full DPR by default, 1x only if the GPU can't keep up
 const PERF_WINDOW = 2
@@ -45,7 +48,7 @@ function AdaptiveDpr() {
  *   world unit, leaving open sky above for the landing and the hops
  * - "fit": the whole scene fits the canvas (small layouts)
  */
-function Framing({ mode, unitPx }) {
+function Framing({ mode, unitPx, scene }) {
   const size = useThree((s) => s.size)
   const camera = useThree((s) => s.camera)
   useLayoutEffect(() => {
@@ -53,20 +56,19 @@ function Framing({ mode, unitPx }) {
     let px
     let targetY
     if (mode === 'fit') {
-      px = size.height / (SCENE_HEIGHT + 0.5)
-      targetY = SCENE_BOTTOM + SCENE_HEIGHT / 2
+      px = size.height / (scene.height + 0.5)
+      targetY = scene.bottom + scene.height / 2
     } else {
       // never let the scene outgrow a short window
-      px = Math.min(unitPx, (size.height - 40) / (SCENE_HEIGHT + 0.6))
+      px = Math.min(unitPx, (size.height - 40) / (scene.height + 0.6))
       const halfH = size.height / (2 * px)
-      // extra room at the bottom: the front of the books sits closer to the camera
-      targetY = SCENE_BOTTOM - 0.4 + halfH
+      targetY = scene.bottom - scene.margin + halfH
     }
     const distance = size.height / (2 * tan * px)
     camera.position.set(0, targetY + 0.15, distance)
     camera.lookAt(0, targetY, 0)
     camera.updateProjectionMatrix()
-  }, [size, camera, mode, unitPx])
+  }, [size, camera, mode, unitPx, scene])
   return null
 }
 
@@ -140,7 +142,7 @@ function OwlCanvas({ pose = 'hero', onHoot, reduceMotion = false, eventSource, f
         style={eventSource ? { pointerEvents: 'none' } : undefined}
         aria-hidden="true"
       >
-        <Framing mode={framing} unitPx={unitPx} />
+        <Framing mode={framing} unitPx={unitPx} scene={SCENES[pose] ?? SCENES.hero} />
         <hemisphereLight args={['#fff6e8', '#1b2a4d', 1.15]} />
         <directionalLight position={[-3, 5, 4]} intensity={2.1} color="#fff1dc" />
         {/* cool rim light keeps the navy silhouette readable on dark paper */}

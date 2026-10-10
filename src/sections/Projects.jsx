@@ -1,123 +1,116 @@
 import { useState } from 'react'
-import { AnimatePresence, LayoutGroup, motion } from 'framer-motion'
-import { FiGithub } from 'react-icons/fi'
 import { useLanguage } from '../context/contexts'
 import { projects, projectCategories, categoriesOf } from '../data/projects'
 import { profile } from '../data/profile'
 import { scrollToTarget } from '../lib/smoothScroll'
 import SectionHeading from '../components/SectionHeading'
 import ProjectCard from '../components/ProjectCard'
-import Button from '../components/Button'
 import styles from './Projects.module.css'
 
-// "Last build" is the newest finished project; "Building" only shows while something is in progress
-const lastBuild = projects.find((p) => p.status !== 'in-progress')
-const building = projects.find((p) => p.status === 'in-progress')
+const finished = projects.filter((p) => p.status !== 'in-progress')
+const inProgress = projects.filter((p) => p.status === 'in-progress')
+// "Last built" is the newest finished project; "Currently building" only shows while something is in progress
+const lastBuild = finished[0]
+const building = inProgress[0]
+const github = profile.socials.find((s) => s.id === 'github')
+
+const countFor = (id) => (id === 'all' ? finished.length : finished.filter((p) => categoriesOf(p).includes(id)).length)
+
+function jumpTo(id) {
+  return (e) => {
+    e.preventDefault()
+    scrollToTarget(`#project-${id}`)
+  }
+}
 
 export default function Projects() {
-  const { t, pick, lang } = useLanguage()
-  const [activeCategory, setActiveCategory] = useState('all')
+  const { t, pick } = useLanguage()
+  const [active, setActive] = useState('all')
 
-  const filtered = activeCategory === 'all'
-    ? projects
-    : projects.filter((p) => categoriesOf(p).includes(activeCategory))
+  const shown = active === 'all' ? finished : finished.filter((p) => categoriesOf(p).includes(active))
+  const [feature, ...rest] = active === 'all' ? shown : [null, ...shown]
 
   return (
     <section id="projects" className="section">
       <div className="container">
-        <div className={styles.headerRow}>
-          <SectionHeading
-            index={5}
-            eyebrow={t('projects.eyebrow')}
-            title={t('projects.title')}
-            accent={t('projects.titleAccent')}
-            key={lang}
-          >
-            <p className={styles.subtitle}>{t('projects.subtitle')}</p>
-            <ul className={styles.now}>
-              {lastBuild && (
-                <li>
-                  <span className={styles.nowLabel}>{t('projects.lastBuild')}</span>
-                  <a href={`#project-${lastBuild.id}`} onClick={(e) => { e.preventDefault(); scrollToTarget(`#project-${lastBuild.id}`) }}>
-                    {lastBuild.title}
-                  </a>
-                </li>
-              )}
-              {building && (
-                <li>
-                  <span className={styles.nowLabel}>
-                    <span className={styles.nowDot} aria-hidden="true" />
-                    {t('projects.building')}
-                  </span>
-                  <a href={`#project-${building.id}`} onClick={(e) => { e.preventDefault(); scrollToTarget(`#project-${building.id}`) }}>
-                    {building.title}
-                  </a>
-                </li>
-              )}
-            </ul>
-          </SectionHeading>
+        <SectionHeading index={1} kicker={t('projects.kicker')} title={t('projects.title')}>
+          <p>{t('projects.subtitle')}</p>
+          <ul className={styles.now}>
+            {lastBuild && (
+              <li>
+                <span className={styles.nowLabel}>{t('projects.lastBuild')}</span>
+                <a href={`#project-${lastBuild.id}`} onClick={jumpTo(lastBuild.id)}>
+                  {lastBuild.title}
+                </a>
+              </li>
+            )}
+            {building && (
+              <li>
+                <span className={styles.nowLabel}>
+                  <span className={styles.nowDot} aria-hidden="true" />
+                  {t('projects.building')}
+                </span>
+                <a href={`#project-${building.id}`} onClick={jumpTo(building.id)}>
+                  {building.title}
+                </a>
+              </li>
+            )}
+          </ul>
+        </SectionHeading>
 
-          {/* Filter tabs */}
-          <div className={styles.filters} role="tablist" aria-label="Filter projects">
-            {projectCategories.map((cat) => {
-              const isActive = activeCategory === cat.id
-              return (
-                <button
-                  key={cat.id}
-                  role="tab"
-                  id={`filter-${cat.id}`}
-                  aria-selected={isActive}
-                  className={`${styles.filterBtn} ${isActive ? styles.filterActive : ''}`}
-                  onClick={() => setActiveCategory(cat.id)}
-                >
-                  {isActive && (
-                    <motion.span
-                      layoutId="project-cat-pill"
-                      className={styles.filterPill}
-                      transition={{ type: 'spring', stiffness: 420, damping: 32 }}
-                    />
-                  )}
-                  <span className={styles.filterText}>{pick(cat.label)}</span>
-                </button>
-              )
-            })}
+        <div className={styles.filters} role="tablist" aria-label="Filter projects">
+          {projectCategories.map((cat) => {
+            const count = countFor(cat.id)
+            return (
+              <button
+                key={cat.id}
+                role="tab"
+                id={`filter-${cat.id}`}
+                aria-selected={active === cat.id}
+                className={`${styles.filter} ${active === cat.id ? styles.filterOn : ''}`}
+                onClick={() => setActive(cat.id)}
+                disabled={count === 0}
+              >
+                {pick(cat.label)}
+                <sup>{count}</sup>
+              </button>
+            )
+          })}
+        </div>
+
+        {feature && <ProjectCard key={`f-${feature.id}`} project={feature} feature />}
+
+        {rest.length > 0 && (
+          <div className={styles.grid}>
+            {rest.map((p) => (
+              <ProjectCard key={`${active}-${p.id}`} project={p} />
+            ))}
           </div>
-        </div>
+        )}
 
-        {/* Project grid */}
-        <LayoutGroup>
-          <motion.div layout className={styles.grid}>
-            <AnimatePresence mode="popLayout">
-              {filtered.length > 0 ? (
-                filtered.map((proj) => (
-                  <ProjectCard key={proj.id} project={proj} />
-                ))
-              ) : (
-                <motion.div
-                  key="empty"
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className={styles.empty}
-                >
-                  <p>{t('projects.empty')}</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        </LayoutGroup>
+        {inProgress.length > 0 && (
+          <div className={styles.later}>
+            <h3 className={styles.laterTitle}>{t('projects.inProgress')}</h3>
+            <ul>
+              {inProgress.map((p) => (
+                <li key={p.id} id={`project-${p.id}`}>
+                  <a href={p.github} target="_blank" rel="noopener noreferrer" className={styles.row}>
+                    <span className={styles.rowYear}>{p.year}</span>
+                    <span className={styles.rowName}>{p.title}</span>
+                    <span className={styles.rowDesc}>{pick(p.description)}</span>
+                    <span className={styles.rowArrow} aria-hidden="true">
+                      ↗
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
-        {/* More on GitHub button */}
-        <div className={styles.moreWrap}>
-          <Button
-            href={`https://github.com/${profile.socials.find((s) => s.id === 'github')?.handle?.replace('@', '') || 'nabielyr'}`}
-            external
-            variant="ghost"
-            icon={<FiGithub />}
-          >
-            {t('projects.more')}
-          </Button>
-        </div>
+        <a className={styles.more} href={github.url} target="_blank" rel="noopener noreferrer">
+          {t('projects.more')} ↗
+        </a>
       </div>
     </section>
   )

@@ -1,161 +1,133 @@
-import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { FiArrowUpRight, FiCheck, FiCopy, FiGithub, FiLinkedin, FiMail, FiClock } from 'react-icons/fi'
-import { SiLinktree } from 'react-icons/si'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { useReducedMotion } from 'framer-motion'
 import { useLanguage } from '../context/contexts'
+import { useMediaQuery } from '../hooks/useMediaQuery'
 import { profile } from '../data/profile'
-import SectionHeading from '../components/SectionHeading'
-import Button from '../components/Button'
-import Reveal from '../components/Reveal'
 import styles from './Contact.module.css'
 
-const ICONS = {
-  email: FiMail,
-  linkedin: FiLinkedin,
-  github: FiGithub,
-  linktree: SiLinktree,
-}
+const OwlCanvas = lazy(() => import('../components/owl/OwlCanvas'))
 
-function LiveClock({ label }) {
-  const [time, setTime] = useState('')
+const timeInMalang = () =>
+  new Date().toLocaleTimeString('en-GB', { timeZone: profile.timezone, hour: '2-digit', minute: '2-digit', hour12: false })
 
+function useMalangTime() {
+  const [time, setTime] = useState(timeInMalang)
   useEffect(() => {
-    const update = () => {
-      const now = new Date()
-      const formatted = now.toLocaleTimeString('en-US', {
-        timeZone: 'Asia/Jakarta',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false,
-      })
-      setTime(formatted)
-    }
-    update()
-    const timer = setInterval(update, 1000)
-    return () => clearInterval(timer)
+    const id = setInterval(() => setTime(timeInMalang()), 10000)
+    return () => clearInterval(id)
   }, [])
-
-  return (
-    <div className={styles.clockWrap}>
-      <FiClock className={styles.clockIcon} />
-      <span>{label}: </span>
-      <span className={styles.clockTime}>{time} (WIB)</span>
-    </div>
-  )
+  return time
 }
+
+/** Only create the second WebGL scene once the section is about to be seen */
+function useNearView(el) {
+  const [near, setNear] = useState(false)
+  useEffect(() => {
+    if (!el || near) return undefined
+    const io = new IntersectionObserver(([entry]) => entry.isIntersecting && setNear(true), { rootMargin: '400px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [el, near])
+  return near
+}
+
+const links = profile.socials.filter((s) => s.id !== 'email')
 
 export default function Contact() {
-  const { t, lang } = useLanguage()
+  const { t } = useLanguage()
+  const reduceMotion = useReducedMotion()
+  const narrow = useMediaQuery('(max-width: 760px)')
+  const time = useMalangTime()
+  const [sectionEl, setSectionEl] = useState(null)
+  const near = useNearView(sectionEl)
   const [copied, setCopied] = useState(false)
+  const copyTimer = useRef(0)
+
+  useEffect(() => () => clearTimeout(copyTimer.current), [])
 
   const copyEmail = async () => {
     try {
       await navigator.clipboard.writeText(profile.email)
       setCopied(true)
-      setTimeout(() => setCopied(false), 2400)
+      clearTimeout(copyTimer.current)
+      copyTimer.current = setTimeout(() => setCopied(false), 2000)
     } catch {
-      // fallback if clipboard not available
       window.location.href = `mailto:${profile.email}`
     }
   }
 
   return (
-    <section id="contact" className="section">
+    <section id="contact" ref={setSectionEl} className={`section ${styles.contact}`}>
       <div className="container">
-        <SectionHeading
-          index={6}
-          eyebrow={t('contact.eyebrow')}
-          title={t('contact.title')}
-          accent={t('contact.titleAccent')}
-          align="center"
-          key={lang}
-        >
-          <p className={styles.lead}>{t('contact.subtitle')}</p>
-        </SectionHeading>
+        <p className={styles.kicker}>
+          <span className={styles.index}>(05)</span>
+          <span>{t('contact.kicker')}</span>
+          <span className={styles.rule} aria-hidden="true" />
+        </p>
 
-        <Reveal className={styles.card}>
-          <div className={styles.ctaBox}>
-            <span className={styles.statusPill}>
-              <span className={styles.statusDot} />
-              Open for opportunities
-            </span>
-            <h3 className={styles.ctaHeading}>
-              Have an idea or looking for an AI/ML enthusiast?
-            </h3>
+        <div className={styles.titleWrap}>
+          {/* Hoo stands on the letters; the section feeds it pointer events */}
+          <div className={styles.perch}>
+            {near && sectionEl && (
+              <Suspense fallback={null}>
+                <OwlCanvas
+                  pose="perch"
+                  reduceMotion={reduceMotion}
+                  eventSource={sectionEl}
+                  framing="stage"
+                  unitPx={narrow ? 46 : 84}
+                />
+              </Suspense>
+            )}
+          </div>
+          <h2 className={styles.title}>
+            {t('contact.title')}
+            <span className={styles.dot} aria-hidden="true" />
+          </h2>
+        </div>
 
-            {/* Email quick copy */}
+        <div className={styles.grid}>
+          <div>
+            <p className={styles.lead}>{t('contact.lead')}</p>
+            <p className={styles.status}>
+              <span className={styles.statusDot} aria-hidden="true" />
+              {t('contact.status')}
+            </p>
+
             <div className={styles.emailRow}>
-              <button
-                id="copy-email-btn"
-                className={styles.emailPill}
-                onClick={copyEmail}
-                aria-label={t('contact.copy')}
-              >
-                <span className={styles.emailText}>{profile.email}</span>
-                <span className={styles.copyIcon}>
-                  {copied ? <FiCheck className={styles.checkIcon} /> : <FiCopy />}
-                </span>
+              <a className={styles.email} href={`mailto:${profile.email}`}>
+                {profile.email}
+              </a>
+              <button id="copy-email-btn" className={styles.copy} onClick={copyEmail} aria-live="polite">
+                {copied ? t('contact.copied') : t('contact.copy')}
               </button>
-
-              <Button
-                id="send-mail-btn"
-                href={`mailto:${profile.email}`}
-                variant="primary"
-                icon={<FiArrowUpRight />}
-              >
-                Say Hello
-              </Button>
             </div>
 
-            {/* Toast feedback */}
-            <AnimatePresence>
-              {copied && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className={styles.toast}
-                  role="status"
-                >
-                  <FiCheck /> {t('contact.copied')}
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {profile.cv && (
+              <a className={styles.cv} href={profile.cv} download>
+                {t('contact.cv')} ↓
+              </a>
+            )}
           </div>
 
-          {/* Social cards */}
-          <div className={styles.socialsGrid}>
-            {profile.socials.map((soc) => {
-              const Icon = ICONS[soc.id] || FiMail
-              const isEmail = soc.id === 'email'
-              return (
-                <motion.a
-                  key={soc.id}
-                  id={`social-${soc.id}`}
-                  href={soc.url}
-                  target={isEmail ? undefined : '_blank'}
-                  rel="noopener noreferrer"
-                  className={styles.socialCard}
-                  whileHover={{ y: -4 }}
-                >
-                  <div className={styles.socialIcon}>
-                    <Icon />
-                  </div>
-                  <div className={styles.socialInfo}>
-                    <span className={styles.socialLabel}>{soc.label}</span>
-                    <span className={styles.socialHandle}>{soc.handle}</span>
-                  </div>
-                  <FiArrowUpRight className={styles.socialArrow} />
-                </motion.a>
-              )
-            })}
+          <div>
+            <p className={styles.sideLabel}>{t('contact.elsewhere')}</p>
+            <ul className={styles.links}>
+              {links.map((s) => (
+                <li key={s.id}>
+                  <a id={`social-${s.id}`} href={s.url} target="_blank" rel="noopener noreferrer">
+                    <span className={styles.linkName}>{s.label}</span>
+                    <span className={styles.linkHandle}>{s.handle}</span>
+                    <span aria-hidden="true">↗</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <p className={styles.clock}>
+              {t('contact.localTime')} <strong>{time} WIB</strong>
+            </p>
           </div>
-
-          <div className={styles.cardFooter}>
-            <LiveClock label={t('contact.localTime')} />
-          </div>
-        </Reveal>
+        </div>
       </div>
     </section>
   )
